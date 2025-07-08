@@ -7,7 +7,7 @@
     "start": "npm run build && node dist/app.js",
     "build": "tsc",
     "lint": "eslint src/**/*.ts --fix --ext .ts",
-    "dev": "nodemon src/app.ts",
+    "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/app.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -28,6 +28,7 @@
     "prettier": "^3.6.2",
     "prisma": "^6.11.1",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.35.1"
   }
