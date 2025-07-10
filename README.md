@@ -54,6 +54,7 @@ git clone https://github.com/ON-AIR-mate/Node.js.git
 
 ```bash
 npm install
+npm install swagger-jsdoc
 ```
 
 3. `env` 파일 설정
