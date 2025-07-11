@@ -22,7 +22,7 @@ export const sendError = (
   res: Response,
   message: string,
   statusCode = 500,
-  code = 'INTERNAL_SERVER_ERROR'
+  code = 'INTERNAL_SERVER_ERROR',
 ) => {
   const response: ApiResponse<null> = {
     success: false,

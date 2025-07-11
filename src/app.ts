@@ -1,12 +1,12 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
-import errorHandler from './middleware/errors/errorHandler';
-import AppError from './middleware/errors/AppError';
-import { sendSuccess } from './utils/response';
+import errorHandler from './middleware/errors/errorHandler.js'; // .js 추가
+import AppError from './middleware/errors/AppError.js'; // .js 추가
+import { sendSuccess } from './utils/response.js'; // .js 추가
 import swaggerUi from 'swagger-ui-express';
-import { specs } from '../swagger';
-import passport from './auth/passport';
-import { requireAuth } from './middleware/authMiddleware';
+import { specs } from '../swagger.js'; // .js 추가
+import passport from './auth/passport.js'; // .js 추가
+import { requireAuth } from './middleware/authMiddleware.js'; // .js 추가
 
 dotenv.config();
 
