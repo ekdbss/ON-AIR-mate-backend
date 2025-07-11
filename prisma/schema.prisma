@@ -15,10 +15,297 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  userId               Int      @id @default(autoincrement())
+  loginId              String
+  nickname             String
+  nicknameChangeCount  Int
+  password             String
+  profileImage         String
+  score                Int
+  isVerified           Boolean
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  Collection            Collection[]
+  Notification          Notification[]
+  UserChat              UserChat[]
+  UserShareCollection   UserShareCollection[]
+  RoomParticipate       RoomParticipate[]
+  RoomMessage           RoomMessage[]
+  UserSearchHistory     UserSearchHistory[]
+  DailyRecommendLog     DailyRecommendLog[]
+  Friendship            Friendship[]
+
+  @@map("users")
+}
+
+model Notification { // 알림
+  notificationId  Int       @id @default(autoincrement())
+  senderUserId    Int
+  userId          Int
+  content         String    @db.VarChar(150)
+  type            NotificationType
+  status          NotificationStatus
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  senderUser      User      @relation("SentNotifications", fields: [senderUserId], references: [userId])
+  receiverUser    User      @relation("ReceivedNotifications", fields: [userId], references: [userId])
+
+  @@map("notifications")
+}
+
+enum NotificationType {
+  roomInvitation
+  collectionShare
+}
+
+enum NotificationStatus {
+  unread
+  read
+  dismissed
+}
+
+model UserChat {  // 일반 채팅
+  userChatId Int      @id @default(autoincrement())
+  myId       Int
+  friendId   Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  myUser     User     @relation("MyChats", fields: [myId], references: [userId])
+  friendUser User     @relation("FriendChats", fields: [friendId], references: [userId])
+
+  messages   UserChatMessage[]
+
+  @@map("user_chats")
+}
+
+model UserChatMessage { // 일반 채팅 메세지
+  userChatMessageId Int      @id @default(autoincrement())
+  userChatId        Int
+  content           String   @db.Text
+  type              MessageType
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  userChat          UserChat @relation(fields: [userChatId], references: [userChatId])
+
+  @@map("user_chat_messages")
+}
+
+enum MessageType {
+  general
+  collectionShare
+  roomInvite
+}
+
+model UserShareCollection { // 공유 컬렉션
+  userShareCollectionId   Int      @id @default(autoincrement())
+  fromUserId              Int      
+  userCollectionId        Int      
+  userChatId              Int      
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  fromUser       User           @relation("SharedFrom", fields: [fromUserId], references: [id])
+  userCollection UserCollection @relation(fields: [userCollectionId], references: [id])
+  userChat       UserChat       @relation(fields: [userChatId], references: [id])
+
+  @@map("user_share_collections")
+}
+
+model Video {
+  videoId       Int      @id @default(autoincrement())
+  url           String   @db.VarChar(100)
+  title         String
+  thumbnailUrl  String   @db.VarChar(100)
+  playTime      Int
+  channelIcon   String   @db.VarChar(100)
+  channelName   String   @db.VarChar(100)
+  views         Int
+  publishedAt   DateTime
+
+  rooms        Room[]
+
+  @@@map("videos")
+}
+
+model UserSearchHistory { // 검색 기록
+  userSearchHistoryId   Int       @id @default(autoincrement())
+  userId                Int      
+  keyword               String    @db.VarChar(100)
+  searchedAt            DateTime  @default(now())
+
+  user                  User     @relation(fields: [userId], references: [userId])
+  
+  @@@map("user_search_histories")
+}
+
+model RoomMessage { // 방 채팅 메세지
+  roomMessageId           Int      @id @default(autoincrement())
+  roomId                  Int      
+  roomParticipateId       Int      
+  content                 String
+  sentAt                  DateTime @default(now())
+  type                    MessageType
+
+  bookmark                Bookmark[]
+
+  room                    Room     @relation(fields: [roomId], references: [id])
+  roomParticipate         RoomParticipate @relation(fields: [roomParticipateId], references: [roomParticipateId])
+
+  @@unique([roomParticipateId])
+
+  @@@map("room_messages")
+}
+
+model RoomParticipate { // 방 참가자
+  roomParticipateId   Int      @id @default(autoincrement())
+  roomId              Int
+  participantId       Int      
+  role                Role
+  joinedAt            DateTime @default(now())
+
+  RoomMessage         RoomMessage?
+  room                Room     @relation(fields: [roomId], references: [id])
+  user                User     @relation(fields: [participantId], references: [userId])
+
+  @@@@map("room_participates")
+}
+
+enum Role {
+  host
+  member
+}
+
+model Term { // 약관/알림 동의
+  termId                Int      @id @default(autoincrement())
+  userId                Int      
+  serviceTerm           Boolean
+  privacyTerm           Boolean
+  privacyPolicyTerm     Boolean
+  marketingTerm         Boolean
+  promotionTerm         Boolean
+  serviceNotify         Boolean
+  marketingNotify       Boolean
+  nightNotify           Boolean
+  isRequired            Boolean
+
+  userId                 Int      @unique
+  user                   User     @relation(fields: [userId], references: [userId])
+
+  @@@map("terms")
+}
+
+DailyRecommendLog { // 하루 추천 버튼 로그
+  dailyRecommendLogId     Int      @id @default(autoincrement())
+  roomId                  Int
+  fromUserId              Int
+  toUserId                Int
+  recommendedDate         Date
+  createAt                DateTime @default(now())
+  
+  room                    Room     @relation(fields: [roomId], references: [roomId])
+  fromUser                User     @relation(fields: [fromUserId], references: [userId])
+  toUser                  User     @relation(fields: [toUserId], references: [userId])
+
+  @@@map("daily_recommend_logs")
+}
+
+model Friendship {
+  userFriendshipId    Int      @id @default(autoincrement())
+  requestedByUser     Int
+  requestedToUser     Int
+  requestAccepted     Boolean
+  status       FriendshipStatus
+  requestedAt    DateTime @default(now())
+  respondedAt    DateTime
+
+  requestedByUser User @relation(fields: [requestedByUser], references: [userId])
+  requestedToUser User @relation(fields: [requestedToUser], references: [userId])
+
+  @@@map("friendships")
+}
+
+enum FriendshipStatus {
+  pending
+  accepted
+  rejected
+  blocked
+}
+
+model Collection {
+  collectionId                Int      @id @default(autoincrement())
+  userId                      Int      
+  title                       String   @db.VarChar(100)
+  description                 String   @db.VarChar(100)
+  visibility                  CollectionVisibility
+  count                       Int
+  imgUrl                      String   @db.VarChar(100)
+  isFavorite                  Boolean
+  originalCollectionIdId      Int
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+
+  UserShareCollection         UserShareCollection[]
+  UserCollection              UserCollection[]
+  Bookmark                    Bookmark[]
+  
+  user                        User     @relation(fields: [userId], references: [userId])
+
+  @@@@map("collections")
+}
+
+enum CollectionVisibility {
+  public
+  friendsOnly
+  private
+}
+
+model Bookmark {
+  bookmarkId              Int       @id @default(autoincrement())  
+  collectionId            Int
+  roomMessageId           Int
+  timeline                String    @db.VarChar(50)
+  content                 String
+  originalBookmarkId      Int
+  createdAt DateTime      @default(now())
+  updateAt  DateTime      @updateAt
+
+  Bookmark                Bookmark[]
+  
+  collection              Collection @relation(fields: [collectionId], references: [collectionId])
+  RoomMessage             RoomMessage @relation(fields: [roomMessageId], references: [roomMessageId])
+
+  @@@@map("bookmarks")
+}
+
+model Room { // 방장이 만든 방 리스트
+  roomId                Int      @id @default(autoincrement())
+  videoId               Int
+  title                 String   @db.VarChar(100)
+  isPublic              Boolean
+  activate              Boolean
+  maxPeople             Int
+  currentPeople         Int
+  popularity            Int
+  bookmarkAchiving      Boolean
+  invitePermission      invitePermission
+  over30                Boolean
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  Video                 Video       @relation(fields: [videoId], references: [videoId])
+  
+  RoomParticipate       RoomParticipate[]
+  RoomMessage           RoomMessage[]
+  DailyRecommendLog     DailyRecommendLog[]
+
+  @@map("rooms")
+}
+
+enum invitePermission {
+  all
+  host
 }
