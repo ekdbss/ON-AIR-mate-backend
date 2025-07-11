@@ -309,3 +309,5 @@ enum invitePermission {
   all
   host
 }
+
+// UserBlock 테이블 추후에 생성
