@@ -1,13 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import AppError from './AppError';
-import { sendError } from '../../utils/response';
+import AppError from './AppError.js';
+import { sendError } from '../../utils/response.js';
 
-const errorHandler = (
-  err: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof AppError) {
     return sendError(res, err.message, err.statusCode);
   }
