@@ -16,4 +16,4 @@
     ],
     "prettier.requireConfig": true,
     "editor.rulers": [100]
-  }
+}
