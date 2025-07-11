@@ -5,6 +5,8 @@ import AppError from './middleware/errors/AppError';
 import { sendSuccess } from './utils/response';
 import swaggerUi from 'swagger-ui-express';
 import { specs } from '../swagger';
+import passport from './auth/passport';
+import { requireAuth } from './middleware/authMiddleware';
 
 dotenv.config();
 
@@ -12,6 +14,11 @@ const app: Express = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(passport.initialize());
+
+app.get('/protected', requireAuth, (req: Request, res: Response) => {
+  sendSuccess(res, { message: '인증된 사용자만 접근 가능' });
+});
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
