@@ -2,7 +2,7 @@
   "name": "on-air-mate-back",
   "version": "1.0.0",
   "type": "module",  
-  "description": "",
+  "description": "ON-AIR-mate 백엔드 서버",
   "main": "dist/app.js",
   "scripts": {
     "start": "npm run build && node dist/app.js",

@@ -1,3 +1,6 @@
+/**
+ * JWT 토큰 생성 및 검증 유틸리티
+ */
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 

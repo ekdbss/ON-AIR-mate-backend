@@ -1,3 +1,6 @@
+/**
+ * Passport JWT 인증 전략 설정
+ */
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt, StrategyOptions } from 'passport-jwt';
 import dotenv from 'dotenv';
