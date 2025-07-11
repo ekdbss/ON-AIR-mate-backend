@@ -1,3 +1,6 @@
+/**
+ * Prisma 데이터베이스 마이그레이션 스크립트
+ */
 import dotenv from 'dotenv';
 import { exec } from 'child_process';
 import { fileURLToPath } from 'url';

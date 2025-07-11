@@ -1,3 +1,6 @@
+/**
+ * API 응답 형식 표준화 유틸리티
+ */
 import { Response } from 'express';
 
 interface ApiResponse<T> {
