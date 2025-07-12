@@ -1,9 +1,9 @@
 ---
-name: "\U0001F41B Issue Template"
+name: "\U0001FA84 Issue Template"
 about: ON-AIR-mate / Node.js 이슈 템플릿
 title: 'feat: '
 labels: ''
-assignees: gaaahee
+assignees: ''
 
 ---
 
