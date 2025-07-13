@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -15,299 +12,335 @@ datasource db {
 }
 
 model User {
-  userId               Int      @id @default(autoincrement())
-  loginId              String
-  nickname             String
-  nicknameChangeCount  Int
-  password             String
-  profileImage         String
-  score                Int
-  isVerified           Boolean
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  userId         Int      @id @default(autoincrement()) @map("user_id")
+  username       String   @unique @db.VarChar(50)
+  password       String   @db.VarChar(255)
+  nickname       String   @unique @db.VarChar(30)
+  profileImage   String?  @map("profile_image") @db.VarChar(500)
+  popularity     Int      @default(0)
+  isVerified     Boolean  @default(false) @map("is_verified")
+  refreshToken   String?  @map("refresh_token") @db.VarChar(500)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
-  Collection            Collection[]
-  Notification          Notification[]
-  UserChat              UserChat[]
-  UserShareCollection   UserShareCollection[]
-  RoomParticipate       RoomParticipate[]
-  RoomMessage           RoomMessage[]
-  UserSearchHistory     UserSearchHistory[]
-  DailyRecommendLog     DailyRecommendLog[]
-  Friendship            Friendship[]
+  // Relations
+  userAgreements         UserAgreement?
+  requestedFriendships   Friendship[]          @relation("RequestedBy")
+  receivedFriendships    Friendship[]          @relation("RequestedTo")
+  blockedUsers           UserBlock[]           @relation("BlockerUser")
+  blockedByUsers         UserBlock[]           @relation("BlockedUser")
+  hostedRooms            Room[]                @relation("HostUser")
+  roomParticipants       RoomParticipant[]
+  roomMessages           RoomMessage[]
+  userChats1             UserChat[]            @relation("User1")
+  userChats2             UserChat[]            @relation("User2")
+  userChatMessages       UserChatMessage[]
+  bookmarks              Bookmark[]
+  collections            Collection[]
+  sharedCollections      SharedCollection[]
+  notificationsSent      Notification[]        @relation("FromUser")
+  notificationsReceived  Notification[]        @relation("ToUser")
+  recommendationsGiven   DailyRecommendation[] @relation("Recommender")
+  recommendationsReceived DailyRecommendation[] @relation("RecommendedUser")
+  searchHistory          SearchHistory[]
 
   @@map("users")
 }
 
-model Notification { // 알림
-  notificationId  Int       @id @default(autoincrement())
-  senderUserId    Int
-  userId          Int
-  content         String    @db.VarChar(150)
-  type            NotificationType
-  status          NotificationStatus
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+model UserAgreement {
+  agreementId              Int     @id @default(autoincrement()) @map("agreement_id")
+  userId                   Int     @unique @map("user_id")
+  serviceTerms             Boolean @default(false) @map("service_terms")
+  privacyCollection        Boolean @default(false) @map("privacy_collection")
+  privacyPolicy            Boolean @default(false) @map("privacy_policy")
+  marketingConsent         Boolean @default(false) @map("marketing_consent")
+  eventPromotion           Boolean @default(false) @map("event_promotion")
+  serviceNotification      Boolean @default(true) @map("service_notification")
+  advertisingNotification  Boolean @default(false) @map("advertising_notification")
+  nightNotification        Boolean @default(false) @map("night_notification")
 
-  senderUser      User      @relation("SentNotifications", fields: [senderUserId], references: [userId])
-  receiverUser    User      @relation("ReceivedNotifications", fields: [userId], references: [userId])
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
+  @@map("user_agreements")
+}
+
+model Friendship {
+  friendshipId Int               @id @default(autoincrement()) @map("friendship_id")
+  requestedBy  Int               @map("requested_by")
+  requestedTo  Int               @map("requested_to")
+  isAccepted   Boolean           @default(false) @map("is_accepted")
+  status       FriendshipStatus  @default(pending)
+  createdAt    DateTime          @default(now()) @map("created_at")
+  acceptedAt   DateTime?         @map("accepted_at")
+
+  requester User @relation("RequestedBy", fields: [requestedBy], references: [userId], onDelete: Cascade)
+  receiver  User @relation("RequestedTo", fields: [requestedTo], references: [userId], onDelete: Cascade)
+
+  @@unique([requestedBy, requestedTo], name: "unique_friendship")
+  @@index([requestedBy, status], name: "idx_requested_by_status")
+  @@map("friendship")
+}
+
+model UserBlock {
+  blockId       Int      @id @default(autoincrement()) @map("block_id")
+  blockerUserId Int      @map("blocker_user_id")
+  blockedUserId Int      @map("blocked_user_id")
+  blockedAt     DateTime @default(now()) @map("blocked_at")
+  isActive      Boolean  @default(true) @map("is_active")
+
+  blocker User @relation("BlockerUser", fields: [blockerUserId], references: [userId], onDelete: Cascade)
+  blocked User @relation("BlockedUser", fields: [blockedUserId], references: [userId], onDelete: Cascade)
+
+  @@unique([blockerUserId, blockedUserId], name: "unique_block")
+  @@map("user_blocks")
+}
+
+model Room {
+  roomId              Int             @id @default(autoincrement()) @map("room_id")
+  hostId              Int             @map("host_id")
+  roomName            String          @map("room_name") @db.VarChar(100)
+  isPublic            Boolean         @default(true) @map("is_public")
+  isActive            Boolean         @default(true) @map("is_active")
+  maxParticipants     Int             @default(6) @map("max_participants")
+  currentParticipants Int             @default(1) @map("current_participants")
+  popularity          Int             @default(0)
+  autoArchive         Boolean         @default(true) @map("auto_archive")
+  inviteAuth          InviteAuth      @default(all) @map("invite_auth")
+  watched30s          Boolean         @default(false) @map("watched_30s")
+  createdAt           DateTime        @default(now()) @map("created_at")
+  updatedAt           DateTime        @updatedAt @map("updated_at")
+
+  host         User              @relation("HostUser", fields: [hostId], references: [userId], onDelete: Cascade)
+  participants RoomParticipant[]
+  messages     RoomMessage[]
+  bookmarks    Bookmark[]
+
+  @@map("rooms")
+}
+
+model RoomParticipant {
+  participantId Int              @id @default(autoincrement()) @map("participant_id")
+  roomId        Int              @map("room_id")
+  userId        Int              @map("user_id")
+  role          ParticipantRole  @default(participant)
+  joinedAt      DateTime         @default(now()) @map("joined_at")
+
+  room Room @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@unique([roomId, userId], name: "unique_participant")
+  @@map("room_participants")
+}
+
+model RoomMessage {
+  messageId Int         @id @default(autoincrement()) @map("message_id")
+  roomId    Int         @map("room_id")
+  userId    Int         @map("user_id")
+  content   String      @db.Text
+  type      MessageType @default(general)
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  room Room @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("room_messages")
+}
+
+model UserChat {
+  chatId    Int      @id @default(autoincrement()) @map("chat_id")
+  user1Id   Int      @map("user1_id")
+  user2Id   Int      @map("user2_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user1             User               @relation("User1", fields: [user1Id], references: [userId], onDelete: Cascade)
+  user2             User               @relation("User2", fields: [user2Id], references: [userId], onDelete: Cascade)
+  messages          UserChatMessage[]
+  sharedCollections SharedCollection[]
+
+  @@unique([user1Id, user2Id], name: "unique_chat")
+  @@map("user_chats")
+}
+
+model UserChatMessage {
+  messageId Int             @id @default(autoincrement()) @map("message_id")
+  chatId    Int             @map("chat_id")
+  userId    Int             @map("user_id")
+  content   String?         @db.Text
+  type      ChatMessageType @default(general)
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  chat UserChat @relation(fields: [chatId], references: [chatId], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([chatId, type], name: "idx_chat_type")
+  @@map("user_chat_messages")
+}
+
+model Bookmark {
+  bookmarkId         Int      @id @default(autoincrement()) @map("bookmark_id")
+  userId             Int      @map("user_id")
+  roomId             Int      @map("room_id")
+  title              String?  @db.VarChar(50)
+  content            String?  @db.Text
+  originalBookmarkId Int?     @map("original_bookmark_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  user             User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  room             Room      @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
+  originalBookmark Bookmark? @relation("BookmarkCopy", fields: [originalBookmarkId], references: [bookmarkId], onDelete: SetNull)
+  copiedBookmarks  Bookmark[] @relation("BookmarkCopy")
+
+  @@map("bookmarks")
+}
+
+model Collection {
+  collectionId         Int                @id @default(autoincrement()) @map("collection_id")
+  userId               Int                @map("user_id")
+  title                String             @db.VarChar(100)
+  description          String?            @db.VarChar(100)
+  visibility           CollectionVisibility @default(public)
+  bookmarkCount        Int                @default(0) @map("bookmark_count")
+  isLiked              Boolean            @default(false) @map("is_liked")
+  originalCollectionId Int?               @map("original_collection_id")
+  createdAt            DateTime           @default(now()) @map("created_at")
+
+  user               User               @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  originalCollection Collection?        @relation("CollectionCopy", fields: [originalCollectionId], references: [collectionId], onDelete: SetNull)
+  copiedCollections  Collection[]       @relation("CollectionCopy")
+  sharedCollections  SharedCollection[]
+
+  @@map("collections")
+}
+
+model SharedCollection {
+  shareId          Int      @id @default(autoincrement()) @map("share_id")
+  sharedToUserId   Int      @map("shared_to_user_id")
+  collectionId     Int      @map("collection_id")
+  sharedInChatId   Int      @map("shared_in_chat_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  collection     Collection @relation(fields: [collectionId], references: [collectionId], onDelete: Cascade)
+  sharedToUser   User       @relation(fields: [sharedToUserId], references: [userId], onDelete: Cascade)
+  sharedInChat   UserChat   @relation(fields: [sharedInChatId], references: [chatId], onDelete: Cascade)
+
+  @@map("shared_collections")
+}
+
+model Notification {
+  notificationId Int              @id @default(autoincrement()) @map("notification_id")
+  fromUserId     Int?             @map("from_user_id")
+  toUserId       Int              @map("to_user_id")
+  title          String?          @db.VarChar(150)
+  type           NotificationType
+  status         NotificationStatus @default(unread)
+  createdAt      DateTime         @default(now()) @map("created_at")
+
+  fromUser User? @relation("FromUser", fields: [fromUserId], references: [userId], onDelete: Cascade)
+  toUser   User  @relation("ToUser", fields: [toUserId], references: [userId], onDelete: Cascade)
+
+  @@index([toUserId, createdAt], name: "idx_to_user_created")
   @@map("notifications")
 }
 
-enum NotificationType {
-  roomInvitation
+model DailyRecommendation {
+  recommendationId    Int      @id @default(autoincrement()) @map("recommendation_id")
+  recommenderId       Int      @map("recommender_id")
+  recommendedUserId   Int      @map("recommended_user_id")
+  recommendationDate  DateTime @map("recommendation_date") @db.Date
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  recommender     User @relation("Recommender", fields: [recommenderId], references: [userId], onDelete: Cascade)
+  recommendedUser User @relation("RecommendedUser", fields: [recommendedUserId], references: [userId], onDelete: Cascade)
+
+  @@unique([recommenderId, recommendedUserId, recommendationDate], name: "unique_daily_recommendation")
+  @@map("daily_recommendations")
+}
+
+model SearchHistory {
+  historyId     Int      @id @default(autoincrement()) @map("history_id")
+  userId        Int      @map("user_id")
+  searchKeyword String   @map("search_keyword") @db.VarChar(100)
+  searchedAt    DateTime @default(now()) @map("searched_at")
+
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId, searchedAt], name: "idx_user_searched")
+  @@map("search_history")
+}
+
+model YoutubeVideo {
+  videoId     String    @id @map("video_id") @db.VarChar(20)
+  title       String    @db.VarChar(200)
+  description String?   @db.Text
+  thumbnail   String?   @db.VarChar(500)
+  channelIcon String?   @map("channel_icon") @db.VarChar(500)
+  channelName String?   @map("channel_name") @db.VarChar(100)
+  viewCount   Int       @default(0) @map("view_count")
+  duration    String?   @db.VarChar(20)
+  uploadedAt  DateTime? @map("uploaded_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("youtube_videos")
+}
+
+// Enums
+enum FriendshipStatus {
+  pending
+  accepted
+  rejected
+
+  @@map("friendship_status")
+}
+
+enum InviteAuth {
+  all
+  host
+
+  @@map("invite_auth")
+}
+
+enum ParticipantRole {
+  host
+  participant
+
+  @@map("participant_role")
+}
+
+enum MessageType {
+  general
+  system
+
+  @@map("message_type")
+}
+
+enum ChatMessageType {
+  general
   collectionShare
+  roomInvite
+
+  @@map("chat_message_type")
+}
+
+enum CollectionVisibility {
+  private
+  friends
+  public
+
+  @@map("collection_visibility")
+}
+
+enum NotificationType {
+  roomInvite
+  collectionShare
+  friendRequest
+  popularityUp
+
+  @@map("notification_type")
 }
 
 enum NotificationStatus {
   unread
   read
-  dismissed
+
+  @@map("notification_status")
 }
-
-model UserChat {  // 일반 채팅
-  userChatId Int      @id @default(autoincrement())
-  myId       Int
-  friendId   Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  myUser     User     @relation("MyChats", fields: [myId], references: [userId])
-  friendUser User     @relation("FriendChats", fields: [friendId], references: [userId])
-
-  messages   UserChatMessage[]
-
-  @@map("user_chats")
-}
-
-model UserChatMessage { // 일반 채팅 메세지
-  userChatMessageId Int      @id @default(autoincrement())
-  userChatId        Int
-  content           String   @db.Text
-  type              MessageType
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  userChat          UserChat @relation(fields: [userChatId], references: [userChatId])
-
-  @@map("user_chat_messages")
-}
-
-enum MessageType {
-  general
-  collectionShare
-  roomInvite
-}
-
-model UserShareCollection { // 공유 컬렉션
-  userShareCollectionId   Int      @id @default(autoincrement())
-  fromUserId              Int      
-  userCollectionId        Int      
-  userChatId              Int      
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
-
-  fromUser       User           @relation("SharedFrom", fields: [fromUserId], references: [id])
-  userCollection UserCollection @relation(fields: [userCollectionId], references: [id])
-  userChat       UserChat       @relation(fields: [userChatId], references: [id])
-
-  @@map("user_share_collections")
-}
-
-model Video {
-  videoId       Int      @id @default(autoincrement())
-  url           String   @db.VarChar(100)
-  title         String
-  thumbnailUrl  String   @db.VarChar(100)
-  playTime      Int
-  channelIcon   String   @db.VarChar(100)
-  channelName   String   @db.VarChar(100)
-  views         Int
-  publishedAt   DateTime
-
-  rooms        Room[]
-
-  @@@map("videos")
-}
-
-model UserSearchHistory { // 검색 기록
-  userSearchHistoryId   Int       @id @default(autoincrement())
-  userId                Int      
-  keyword               String    @db.VarChar(100)
-  searchedAt            DateTime  @default(now())
-
-  user                  User     @relation(fields: [userId], references: [userId])
-  
-  @@@map("user_search_histories")
-}
-
-model RoomMessage { // 방 채팅 메세지
-  roomMessageId           Int      @id @default(autoincrement())
-  roomId                  Int      
-  roomParticipateId       Int      
-  content                 String
-  sentAt                  DateTime @default(now())
-  type                    MessageType
-
-  bookmark                Bookmark[]
-
-  room                    Room     @relation(fields: [roomId], references: [id])
-  roomParticipate         RoomParticipate @relation(fields: [roomParticipateId], references: [roomParticipateId])
-
-  @@unique([roomParticipateId])
-
-  @@@map("room_messages")
-}
-
-model RoomParticipate { // 방 참가자
-  roomParticipateId   Int      @id @default(autoincrement())
-  roomId              Int
-  participantId       Int      
-  role                Role
-  joinedAt            DateTime @default(now())
-
-  RoomMessage         RoomMessage?
-  room                Room     @relation(fields: [roomId], references: [id])
-  user                User     @relation(fields: [participantId], references: [userId])
-
-  @@@@map("room_participates")
-}
-
-enum Role {
-  host
-  member
-}
-
-model Term { // 약관/알림 동의
-  termId                Int      @id @default(autoincrement())
-  userId                Int      
-  serviceTerm           Boolean
-  privacyTerm           Boolean
-  privacyPolicyTerm     Boolean
-  marketingTerm         Boolean
-  promotionTerm         Boolean
-  serviceNotify         Boolean
-  marketingNotify       Boolean
-  nightNotify           Boolean
-  isRequired            Boolean
-
-  userId                 Int      @unique
-  user                   User     @relation(fields: [userId], references: [userId])
-
-  @@@map("terms")
-}
-
-DailyRecommendLog { // 하루 추천 버튼 로그
-  dailyRecommendLogId     Int      @id @default(autoincrement())
-  roomId                  Int
-  fromUserId              Int
-  toUserId                Int
-  recommendedDate         Date
-  createAt                DateTime @default(now())
-  
-  room                    Room     @relation(fields: [roomId], references: [roomId])
-  fromUser                User     @relation(fields: [fromUserId], references: [userId])
-  toUser                  User     @relation(fields: [toUserId], references: [userId])
-
-  @@@map("daily_recommend_logs")
-}
-
-model Friendship {
-  userFriendshipId    Int      @id @default(autoincrement())
-  requestedByUser     Int
-  requestedToUser     Int
-  requestAccepted     Boolean
-  status       FriendshipStatus
-  requestedAt    DateTime @default(now())
-  respondedAt    DateTime
-
-  requestedByUser User @relation(fields: [requestedByUser], references: [userId])
-  requestedToUser User @relation(fields: [requestedToUser], references: [userId])
-
-  @@@map("friendships")
-}
-
-enum FriendshipStatus {
-  pending
-  accepted
-  rejected
-  blocked
-}
-
-model Collection {
-  collectionId                Int      @id @default(autoincrement())
-  userId                      Int      
-  title                       String   @db.VarChar(100)
-  description                 String   @db.VarChar(100)
-  visibility                  CollectionVisibility
-  count                       Int
-  imgUrl                      String   @db.VarChar(100)
-  isFavorite                  Boolean
-  originalCollectionIdId      Int
-  createdAt                   DateTime @default(now())
-  updatedAt                   DateTime @updatedAt
-
-  UserShareCollection         UserShareCollection[]
-  UserCollection              UserCollection[]
-  Bookmark                    Bookmark[]
-  
-  user                        User     @relation(fields: [userId], references: [userId])
-
-  @@@@map("collections")
-}
-
-enum CollectionVisibility {
-  public
-  friendsOnly
-  private
-}
-
-model Bookmark {
-  bookmarkId              Int       @id @default(autoincrement())  
-  collectionId            Int
-  roomMessageId           Int
-  timeline                String    @db.VarChar(50)
-  content                 String
-  originalBookmarkId      Int
-  createdAt DateTime      @default(now())
-  updateAt  DateTime      @updateAt
-
-  Bookmark                Bookmark[]
-  
-  collection              Collection @relation(fields: [collectionId], references: [collectionId])
-  RoomMessage             RoomMessage @relation(fields: [roomMessageId], references: [roomMessageId])
-
-  @@@@map("bookmarks")
-}
-
-model Room { // 방장이 만든 방 리스트
-  roomId                Int      @id @default(autoincrement())
-  videoId               Int
-  title                 String   @db.VarChar(100)
-  isPublic              Boolean
-  activate              Boolean
-  maxPeople             Int
-  currentPeople         Int
-  popularity            Int
-  bookmarkAchiving      Boolean
-  invitePermission      invitePermission
-  over30                Boolean
-  createdAt             DateTime    @default(now())
-  updatedAt             DateTime    @updatedAt
-
-  Video                 Video       @relation(fields: [videoId], references: [videoId])
-  
-  RoomParticipate       RoomParticipate[]
-  RoomMessage           RoomMessage[]
-  DailyRecommendLog     DailyRecommendLog[]
-
-  @@map("rooms")
-}
-
-enum invitePermission {
-  all
-  host
-}
-
-// UserBlock 테이블 추후에 생성

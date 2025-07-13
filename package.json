@@ -1,7 +1,7 @@
 {
   "name": "on-air-mate-back",
   "version": "1.0.0",
-  "type": "module",  
+  "type": "module",
   "description": "ON-AIR-mate 백엔드 서버",
   "main": "dist/app.js",
   "scripts": {
@@ -21,9 +21,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^6.11.1",
+    "@types/cors": "^2.8.19",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
+    "cors": "^2.8.5",
     "dotenv": "^17.1.0",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
