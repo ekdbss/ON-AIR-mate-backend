@@ -21,6 +21,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^6.11.1",
     "@types/cors": "^2.8.19",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/passport": "^1.0.17",
