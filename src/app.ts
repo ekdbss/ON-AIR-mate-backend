@@ -5,7 +5,7 @@ import errorHandler from './middleware/errors/errorHandler.js';
 import AppError from './middleware/errors/AppError.js';
 import { sendSuccess } from './utils/response.js';
 import swaggerUi from 'swagger-ui-express';
-import { specs } from '../swagger.js';
+import { specs } from './swagger.js';
 import passport from './auth/passport.js';
 import { requireAuth } from './middleware/authMiddleware.js';
 
