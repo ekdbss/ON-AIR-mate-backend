@@ -16,13 +16,16 @@ const port = process.env.PORT || 3000;
 
 // CORS 설정
 const corsOptions = {
-  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+  origin: function (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void,
+  ) {
     // 개발 환경에서는 모든 origin 허용
     if (process.env.NODE_ENV === 'development') {
       callback(null, true);
       return;
     }
-    
+
     // 프로덕션 환경에서는 허용된 도메인만
     const allowedOrigins = [
       'https://your-frontend-domain.com', // 실제 프론트엔드 도메인으로 변경
@@ -30,7 +33,7 @@ const corsOptions = {
       'http://localhost:3000', // 로컬 개발용
       'http://localhost:3001', // 로컬 개발용
     ];
-    
+
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -71,11 +74,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // 헬스 체크 엔드포인트
 app.get('/health', (req: Request, res: Response) => {
-  sendSuccess(res, { 
+  sendSuccess(res, {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
   });
 });
 
