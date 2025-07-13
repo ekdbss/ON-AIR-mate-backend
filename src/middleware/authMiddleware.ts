@@ -3,10 +3,10 @@ import passport from 'passport';
 
 export const authenticateJWT = passport.authenticate('jwt', { session: false });
 
-export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+export const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
   authenticateJWT(req, res, (err: Error | null) => {
     if (err || !req.user) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         data: null,
         error: {
@@ -14,6 +14,7 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
           message: '인증이 필요합니다.',
         },
       });
+      return;
     }
     next();
   });
