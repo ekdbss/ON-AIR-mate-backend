@@ -4,11 +4,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-interface User {
-  id: string;
-  nickname: string;
-}
-
 interface JwtPayload {
   id: string;
   nickname: string;
@@ -22,7 +17,7 @@ const opts: StrategyOptions = {
 passport.use(
   new JwtStrategy(opts, (jwt_payload: JwtPayload, done) => {
     try {
-      const user: User = { id: jwt_payload.id, nickname: jwt_payload.nickname };
+      const user = { id: jwt_payload.id, nickname: jwt_payload.nickname };
       return done(null, user);
     } catch (error) {
       return done(error, false);
