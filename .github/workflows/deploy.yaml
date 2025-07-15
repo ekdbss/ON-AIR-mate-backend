@@ -59,6 +59,10 @@ jobs:
           # Install dependencies
           npm ci &&
           
+          # Prisma database migration
+          npx prisma generate &&
+          npx prisma db push &&
+          
           # Build application
           npm run build &&
           
@@ -77,10 +81,6 @@ jobs:
       run: |
         # Wait a moment for the service to fully start
         sleep 10
-        
-        # Test the application through ALB (if you have ALB endpoint)
-        # Replace with your actual ALB endpoint
-        # curl -f http://your-alb-endpoint.region.elb.amazonaws.com/
         
         echo "Deployment completed successfully!"
 
