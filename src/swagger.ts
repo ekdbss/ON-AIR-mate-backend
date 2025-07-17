@@ -1,5 +1,13 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 
+// 환경별 서버 URL 설정
+const getServerUrl = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return 'http://15.164.176.168:3000';
+  }
+  return 'http://localhost:3000';
+};
+
 const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
@@ -10,7 +18,9 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000', // 요청 URL
+        url: getServerUrl(),
+        description:
+          process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server',
       },
     ],
   },
