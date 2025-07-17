@@ -4,8 +4,6 @@ import cors from 'cors';
 import errorHandler from './middleware/errors/errorHandler.js';
 import AppError from './middleware/errors/AppError.js';
 import { sendSuccess } from './utils/response.js';
-import swaggerUi from 'swagger-ui-express';
-import { specs } from './swagger.js';
 import passport from './auth/passport.js';
 import { requireAuth } from './middleware/authMiddleware.js';
 
@@ -69,8 +67,6 @@ app.get('/protected', requireAuth, (req: Request, res: Response) => {
   sendSuccess(res, { message: '인증된 사용자만 접근 가능' });
 });
 
-// API 문서 (Swagger)
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // 헬스 체크 엔드포인트
 app.get('/health', (req: Request, res: Response) => {
