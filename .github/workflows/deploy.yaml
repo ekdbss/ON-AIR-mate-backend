@@ -51,44 +51,50 @@ jobs:
     - name: Deploy to EC2
       run: |
         ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+          set -e
           cd /home/ec2-user/on-air-mate &&
           
-          # Pull latest code
+          echo "=== 최신 코드 가져오기 ==="
           git pull origin main &&
           
-          # Install dependencies
-          npm ci &&
+          echo "=== 의존성 설치 (프로덕션 전용) ==="
+          npm ci --omit=dev &&
           
-          # Prisma database migration
+          echo "=== Prisma 설정 ==="
           npx prisma generate &&
           npx prisma db push &&
           
-          # Build application
+          echo "=== 애플리케이션 빌드 ==="
           npm run build &&
           
-          # Restart PM2 application (use actual process name)
-          pm2 restart onairmate-api --update-env || pm2 start npm --name "onairmate-api" -- run dev &&
+          echo "=== PM2 프로세스 정리 및 재시작 ==="
+          pm2 delete onairmate-api 2>/dev/null || echo "기존 프로세스 없음"
           
-          # Check if application is running
+          echo "=== 새 프로세스 시작 (메모리 제한) ==="
+          pm2 start npm --name "onairmate-api" -- run dev --max-memory-restart 200M
+          
+          echo "=== 배포 상태 확인 ==="
           sleep 5 &&
           pm2 status &&
           
-          # Test application health
-          curl -f http://localhost:3000/ || exit 1
+          echo "=== 헬스체크 ==="
+          curl -f http://localhost:3000/health || exit 1
+          
+          echo "=== 불필요한 파일 정리 ==="
+          npm cache clean --force 2>/dev/null || true
+          
+          echo "=== 배포 완료 ==="
         '
 
     - name: Verify deployment
       run: |
-        # Wait a moment for the service to fully start
-        sleep 10
-        
-        echo "Deployment completed successfully!"
+        echo "✅ 배포가 성공적으로 완료되었습니다!"
 
     - name: Notify deployment status
       if: always()
       run: |
-        if [ ${{ job.status }} == 'success' ]; then
-          echo "Deployment successful to EC2: ${{ secrets.EC2_HOST }}"
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ 배포 성공: ${{ secrets.EC2_HOST }}"
         else
-          echo "Deployment failed to EC2: ${{ secrets.EC2_HOST }}"
+          echo "❌ 배포 실패: ${{ secrets.EC2_HOST }}"
         fi
