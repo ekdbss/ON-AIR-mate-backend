@@ -67,7 +67,6 @@ app.get('/protected', requireAuth, (req: Request, res: Response) => {
   sendSuccess(res, { message: '인증된 사용자만 접근 가능' });
 });
 
-
 // 헬스 체크 엔드포인트
 app.get('/health', (req: Request, res: Response) => {
   sendSuccess(res, {
