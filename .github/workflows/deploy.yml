@@ -50,12 +50,12 @@ jobs:
 
     - name: Deploy to EC2
       run: |
-        ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'ENDSSH'
+        ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
           set -e
           cd /home/ec2-user/on-air-mate
           
           # Store current disk usage
-          DISK_BEFORE=$(df -h / | tail -1 | awk '{ print $5 }')
+          DISK_BEFORE=$(df -h / | tail -1 | awk "{print \$5}")
           
           # Pull latest code
           git pull origin main
@@ -143,9 +143,9 @@ jobs:
           find /tmp -name "npm-*" -type d -mtime +0 -exec rm -rf {} + 2>/dev/null || true
           
           # Show disk usage improvement
-          DISK_AFTER=$(df -h / | tail -1 | awk '{ print $5 }')
+          DISK_AFTER=$(df -h / | tail -1 | awk "{print \$5}")
           echo "Disk usage: $DISK_BEFORE -> $DISK_AFTER"
-ENDSSH
+        '
 
     - name: Verify deployment
       run: |
