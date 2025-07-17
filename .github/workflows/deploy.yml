@@ -88,22 +88,12 @@ jobs:
           rm -rf node_modules
           
           # Set environment variables
-          cat > .env << EOF
-PORT=${{ secrets.PORT }}
-NODE_ENV=${{ secrets.NODE_ENV }}
-JWT_SECRET=${{ secrets.JWT_SECRET }}
-DATABASE_URL=${{ secrets.DATABASE_URL }}
-DB_HOST=${{ secrets.DB_HOST }}
-DB_USER=${{ secrets.DB_USER }}
-DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-DB_NAME=${{ secrets.DB_NAME }}
-DB_PORT=${{ secrets.DB_PORT }}
-AWS_REGION=${{ secrets.AWS_REGION }}
-AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}
-EOF
-          chmod 600 .env
+          echo "Setting environment variables..."
+          {
+            echo "PORT=3000"
+            echo "NODE_ENV=${{ secrets.NODE_ENV }}"
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}"
+            echo "DATABASE_URL=$
           
           # Install only production dependencies
           npm ci --omit=dev
