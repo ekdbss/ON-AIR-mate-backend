@@ -10,7 +10,7 @@ datasource db {
 
 model User {
   userId                  Int                   @id @default(autoincrement()) @map("user_id")
-  username                String                @unique @db.VarChar(50)
+  loginId                String                @unique @db.VarChar(50)
   password                String                @db.VarChar(255)
   nickname                String                @unique @db.VarChar(30)
   profileImage            String?               @map("profile_image") @db.VarChar(500)

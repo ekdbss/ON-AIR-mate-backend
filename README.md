@@ -105,7 +105,8 @@ PORT=3000
 NODE_ENV=development
 
 # JWT 설정
-JWT_SECRET=your_jwt_secret_here
+JWT_ACCESS_SECRET=your_jwt_access_secret_key_here
+JWT_REFRESH_SECRET=your_jwt_refresh_secret_key_here
 
 # 데이터베이스 설정
 DATABASE_URL="mysql://username:password@host:3306/database"
