@@ -13,6 +13,7 @@
     "db:migrate": "dotenv -- npx prisma migrate dev --name update-user-table",
     "format": "prettier --write \"src/**/*.ts\" && eslint src/**/*.ts --fix",
     "check": "prettier --check \"src/**/*.ts\" && eslint src/**/*.ts"
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"
