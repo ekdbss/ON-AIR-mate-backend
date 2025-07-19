@@ -29,6 +29,7 @@ out/
 *.tsbuildinfo
 tsconfig.tsbuildinfo
 
+dist/
 # Prisma
 /src/generated/
 prisma/migrations/dev/

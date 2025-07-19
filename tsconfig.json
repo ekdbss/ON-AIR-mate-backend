@@ -20,11 +20,7 @@
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node",
-    "transpileOnly": true,
-    "compilerOptions": {
-      "module": "ESNext",
-      "allowImportingTsExtensions": true
-    }
+    "transpileOnly": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
