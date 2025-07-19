@@ -12,7 +12,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "db:migrate": "dotenv -- npx prisma migrate dev --name update-user-table",
     "format": "prettier --write \"src/**/*.ts\" && eslint src/**/*.ts --fix",
-    "check": "prettier --check \"src/**/*.ts\" && eslint src/**/*.ts"
+    "check": "prettier --check \"src/**/*.ts\" && eslint src/**/*.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {
