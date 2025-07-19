@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
-import { generateAccessToken, generateRefreshToken } from '../auth/jwt.js';
-import { sendSuccess, sendError } from '../utils/response.js';
-import { createUser, findUserByNickname, findUserByLoginId } from '../services/authServices.js';
+import { generateAccessToken, generateRefreshToken } from '../auth/jwt';
+import { sendSuccess, sendError } from '../utils/response';
+import { createUser, findUserByNickname, findUserByLoginId } from '../services/authServices';
 
 export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {

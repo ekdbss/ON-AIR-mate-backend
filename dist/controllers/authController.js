@@ -8,9 +8,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import bcrypt from 'bcryptjs';
-import { generateAccessToken, generateRefreshToken } from '../auth/jwt.js';
-import { sendSuccess, sendError } from '../utils/response.js';
-import { createUser, findUserByNickname, findUserByLoginId } from '../services/authServices.js';
+import { generateAccessToken, generateRefreshToken } from '../auth/jwt';
+import { sendSuccess, sendError } from '../utils/response';
+import { createUser, findUserByNickname, findUserByLoginId } from '../services/authServices';
+
 export const register = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { loginId, password, nickname, profileImage } = req.body;

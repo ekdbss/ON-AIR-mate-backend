@@ -7,7 +7,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { PrismaClient } from '../generated/prisma/client.js';
+
+import { PrismaClient } from '../generated/prisma/client';
+
 const prisma = new PrismaClient();
 /**
  * 닉네임 중복 검사
