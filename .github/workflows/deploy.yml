@@ -129,9 +129,10 @@ jobs:
           
           # Restart PM2 process
           pm2 delete onairmate-api 2>/dev/null || true
-          pm2 start npm --name "onairmate-api" -- start \
+          pm2 start npm --name "onairmate-api" \
             --max-memory-restart 200M \
-            --time
+            --time \
+            -- start
           
           sleep 20
           pm2 logs --lines 20
