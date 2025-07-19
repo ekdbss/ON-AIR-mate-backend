@@ -4,7 +4,7 @@
  */
 import { Request, Response, NextFunction } from 'express';
 import AppError from './AppError';
-import { sendError } from '../../utils/response';
+import { sendError } from '../../utils/response.js';
 
 const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
   next();
