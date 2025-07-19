@@ -123,25 +123,32 @@ jobs:
           
           # Restart PM2 process
           pm2 delete onairmate-api 2>/dev/null || true
-          pm2 start npm --name "onairmate-api" \
+          pm2 start dist/app.js --name "onairmate-api" \
             --max-memory-restart 200M \
             --time
           
-          sleep 20
-          pm2 logs --lines 20
+          # PM2 save 
+          pm2 save
+          
+          pm2 logs --lines 5 --nostream
           
           # Health check
+          sleep 10
           for i in {1..5}; do
             if curl -sf http://localhost:3000/health >/dev/null; then
-              break
+              echo "Health check passed!"
+              pm2 flush
+              find /tmp -name "npm-*" -type d -mtime +0 -exec rm -rf {} + 2>/dev/null || true
+              exit 0
             fi
-            [ $i -eq 3 ] && exit 1
+            echo "Waiting for server to start... (attempt $i/5)"
             sleep 5
           done
           
-          pm2 save
-          pm2 flush
-          
+          echo "Health check failed"
+          pm2 logs --lines 20  # 실패 시 더 많은 로그 출력
+          exit 1
+                    
           # Clean system temp files
           find /tmp -name "npm-*" -type d -mtime +0 -exec rm -rf {} + 2>/dev/null || true
           
