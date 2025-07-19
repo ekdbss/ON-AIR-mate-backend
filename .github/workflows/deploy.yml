@@ -64,7 +64,8 @@ jobs:
           DISK_BEFORE=$(df -h / | tail -1 | awk "{print \$5}")
           
           # Pull latest code
-          git pull origin main
+          git fetch origin main
+          git reset --hard origin/main
           
           # AGGRESSIVE CLEANUP - Remove all non-essential files
           echo "Removing non-essential files..."
