@@ -1,14 +1,14 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import errorHandler from './middleware/errors/errorHandler';
-import AppError from './middleware/errors/AppError';
-import { sendSuccess } from './utils/response';
-import passport from './auth/passport';
-import { requireAuth } from './middleware/authMiddleware';
-import authRoutes from './routes/authRoutes';
+import errorHandler from './middleware/errors/errorHandler.js';
+import AppError from './middleware/errors/AppError.js';
+import { sendSuccess } from './utils/response.js';
+import passport from './auth/passport.js';
+import { requireAuth } from './middleware/authMiddleware.js';
+import authRoutes from './routes/authRoutes.js';
 import swaggerUi from 'swagger-ui-express';
-import { specs } from './swagger';
+import { specs } from './swagger.js';
 
 dotenv.config();
 
