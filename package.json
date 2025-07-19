@@ -5,7 +5,7 @@
   "description": "ON-AIR-mate 백엔드 서버",
   "main": "dist/app.js",
   "scripts": {
-    "start": "npm run build && node dist/app.js",
+    "start": "npm run build",
     "build": "tsc",
     "lint": "eslint src/**/*.ts --fix --ext .ts",
     "dev": "nodemon --exec \"node --loader ts-node/esm src/app.ts\"",

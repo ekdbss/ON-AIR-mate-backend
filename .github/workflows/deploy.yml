@@ -133,7 +133,8 @@ jobs:
             --max-memory-restart 200M \
             --time
           
-          sleep 10
+          sleep 20
+          pm2 logs --lines 20
           
           # Health check
           for i in {1..5}; do
