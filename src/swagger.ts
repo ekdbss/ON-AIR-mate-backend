@@ -23,6 +23,58 @@ const options: swaggerJsdoc.Options = {
           bearerFormat: 'JWT',
         },
       },
+      schemas: {
+        RecommendedVideo: {
+          type: 'object',
+          properties: {
+            videoId: { type: 'string', example: 'dQw4w9WgXcQ' },
+            title: {
+              type: 'string',
+              example: 'Rick Astley - Never Gonna Give You Up (Official Music Video)',
+            },
+            thumbnail: {
+              type: 'string',
+              example: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg',
+            },
+            channelName: { type: 'string', example: 'Rick Astley' },
+            viewCount: { type: 'integer', example: 1000000000 },
+            uploadTime: { type: 'string', format: 'date-time', example: '2009-10-25T06:57:33Z' },
+            duration: { type: 'string', example: 'PT3M33S' },
+            durationFormatted: { type: 'string', example: '03:33' },
+          },
+        },
+        SuccessResponse: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: true,
+            },
+            data: {
+              type: 'object',
+            },
+            error: {
+              type: 'object',
+              nullable: true,
+              example: null,
+            },
+          },
+        },
+        RecommendationResponse: {
+          allOf: [
+            { $ref: '#/components/schemas/SuccessResponse' },
+            {
+              type: 'object',
+              properties: {
+                data: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/RecommendedVideo' },
+                },
+              },
+            },
+          ],
+        },
+      },
     },
     security: [
       {

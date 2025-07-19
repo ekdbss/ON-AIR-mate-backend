@@ -6,6 +6,7 @@ import AppError from './middleware/errors/AppError.js';
 import { sendSuccess } from './utils/response.js';
 import passport from './auth/passport.js';
 import { requireAuth } from './middleware/authMiddleware.js';
+import youtubeRoutes from './routes/recommendationRoute.js';
 import authRoutes from './routes/authRoutes.js';
 import swaggerUi from 'swagger-ui-express';
 import { specs } from './swagger.js';
@@ -114,6 +115,7 @@ app.get('/', (req: Request, res: Response) => {
 // API 라우트들을 여기에 추가
 app.use('/api/auth', authRoutes);
 // app.use('/api/rooms', roomRoutes);
+app.use('/api/youtube', youtubeRoutes);
 
 // 404 에러 핸들링
 app.use((req: Request, res: Response, next: NextFunction) => {
