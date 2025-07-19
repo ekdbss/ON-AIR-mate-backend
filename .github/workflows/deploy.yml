@@ -121,12 +121,6 @@ jobs:
           # Build TypeScript
           npm run build
           
-          # Remove source TypeScript files after build (keep only dist)
-          find src -name "*.ts" -not -name "*.d.ts" -delete 2>/dev/null || true
-          
-          # Clean build artifacts
-          find . -name "*.map" -delete 2>/dev/null || true
-          
           # Restart PM2 process
           pm2 delete onairmate-api 2>/dev/null || true
           pm2 start npm --name "onairmate-api" \
