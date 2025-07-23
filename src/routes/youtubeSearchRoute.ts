@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { searchYoutubeVideos } from '../controllers/youtubeSearchController';
+import { searchYoutubeVideos } from '../controllers/youtubeSearchController.js';
 
 const router: Router = Router();
 
