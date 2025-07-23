@@ -1,23 +1,18 @@
-/**
- * API 응답 형식 표준화 유틸리티
- */
 import { Response } from 'express';
 
-interface ApiResponse<T> {
+interface IResponse<T> {
   success: boolean;
   data: T | null;
-  error: {
-    code: string;
-    message: string;
-  } | null;
+  error: IError | null;
+}
+
+interface IError {
+  code: string;
+  message: string;
 }
 
 export const sendSuccess = <T>(res: Response, data: T, statusCode = 200) => {
-  const response: ApiResponse<T> = {
-    success: true,
-    data,
-    error: null,
-  };
+  const response: IResponse<T> = { success: true, data, error: null };
   res.status(statusCode).json(response);
 };
 
@@ -27,13 +22,6 @@ export const sendError = (
   statusCode = 500,
   code = 'INTERNAL_SERVER_ERROR',
 ) => {
-  const response: ApiResponse<null> = {
-    success: false,
-    data: null,
-    error: {
-      code,
-      message,
-    },
-  };
+  const response: IResponse<null> = { success: false, data: null, error: { code, message } };
   res.status(statusCode).json(response);
 };

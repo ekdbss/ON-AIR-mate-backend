@@ -4,10 +4,11 @@ import cors from 'cors';
 import errorHandler from './middleware/errors/errorHandler.js';
 import AppError from './middleware/errors/AppError.js';
 import { sendSuccess } from './utils/response.js';
+import { requireAuth } from './middleware/authMiddleware.js';
+import youtubeRoutes from './routes/recommendationRoute.js';
+import authRoutes from './routes/authRoutes.js';
 import swaggerUi from 'swagger-ui-express';
 import { specs } from './swagger.js';
-import passport from './auth/passport.js';
-import { requireAuth } from './middleware/authMiddleware.js';
 
 dotenv.config();
 
@@ -53,9 +54,6 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Passport 초기화
-app.use(passport.initialize());
-
 // 보안 헤더 설정
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -66,7 +64,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 // 인증이 필요한 라우트 예시
 app.get('/protected', requireAuth, (req: Request, res: Response) => {
-  sendSuccess(res, { message: '인증된 사용자만 접근 가능' });
+  sendSuccess(res, {
+    message: '인증된 사용자만 접근 가능',
+    user: req.user,
+  });
 });
 
 // API 문서 (Swagger)
@@ -111,9 +112,9 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // API 라우트들을 여기에 추가
-// app.use('/api/auth', authRoutes);
-// app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
 // app.use('/api/rooms', roomRoutes);
+app.use('/api/youtube', youtubeRoutes);
 
 // 404 에러 핸들링
 app.use((req: Request, res: Response, next: NextFunction) => {

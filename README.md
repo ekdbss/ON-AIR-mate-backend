@@ -7,9 +7,8 @@ ON-AIR-mate Backend(node.js) 레포지토리입니다.
 ## 🚀 배포 정보 (운영 중)
 
 ### **🌐 프로덕션 서버**
-- **서버 URL**: http://15.164.176.168:3000
-- **API 문서**: http://15.164.176.168:3000/api-docs
-- **헬스체크**: http://15.164.176.168:3000/health
+- **서버 URL**: http://54.180.254.48:3000
+- **헬스체크**: http://54.180.254.48:3000/health
 - **상태**: 🟢 **ONLINE** (24시간 운영)
 
 ### **☁️ AWS 인프라**
@@ -106,7 +105,8 @@ PORT=3000
 NODE_ENV=development
 
 # JWT 설정
-JWT_SECRET=your_jwt_secret_here
+JWT_ACCESS_SECRET=your_jwt_access_secret_key_here
+JWT_REFRESH_SECRET=your_jwt_refresh_secret_key_here
 
 # 데이터베이스 설정
 DATABASE_URL="mysql://username:password@host:3306/database"
@@ -164,14 +164,14 @@ git push origin main
 **GitHub Actions 설정:**
 - `Settings` → `Secrets and variables` → `Actions`에서 설정 완료
 - `EC2_KEY`: SSH 키 파일 설정 완료 ✅
-- `EC2_HOST`: `15.164.176.168` ✅
+- `EC2_HOST`: `54.180.254.48` ✅
 - `EC2_USER`: `ec2-user` ✅
 
 ### **👨‍💻 수동 배포 (비상시)**
 
 ```bash
 # EC2 접속
-ssh -i your-key.pem ec2-user@15.164.176.168
+ssh -i your-key.pem ec2-user@54.180.254.48
 
 # 프로젝트 디렉토리 이동
 cd /home/ec2-user/on-air-mate
@@ -327,7 +327,7 @@ npm test
 npm run test:integration
 
 # API 테스트 (수동)
-curl http://15.164.176.168:3000/health
+curl http://54.180.254.48:3000/health
 curl http://localhost:3000/api-docs
 ```
 
@@ -521,9 +521,8 @@ cp .env.example .env
 ## 📞 연락처 및 리소스
 
 ### **프로덕션 정보**
-- ** 서버**: http://15.164.176.168:3000
-- ** API 문서**: http://15.164.176.168:3000/api-docs  
-- ** 헬스체크**: http://15.164.176.168:3000/health
+- ** 서버**: http://54.180.254.48:3000
+- ** 헬스체크**: http://54.180.254.48:3000/health
 - ** 상태**: 🟢 **ONLINE** (24시간 운영)
 
 ### **개발 리소스**
