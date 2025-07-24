@@ -40,41 +40,6 @@ ON-AIR-mate Backend(node.js) 레포지토리입니다.
 - **Formatting**: Prettier
 - **API 문서**: Swagger UI
 
----
-
-## 🏗️ 프로젝트 구조
-
-```
-.
-├── .github/
-│   └── workflows/
-│       └── deploy.yaml        # GitHub Actions 자동 배포
-├── .vscode/                   # VS Code 설정
-├── prisma/
-│   └── schema.prisma         # 데이터베이스 스키마
-├── src/
-│   ├── auth/                 # JWT 인증
-│   │   ├── jwt.ts
-│   │   └── passport.ts
-│   ├── middleware/           # 미들웨어
-│   │   ├── authMiddleware.ts
-│   │   └── errors/
-│   ├── utils/               # 유틸리티 함수
-│   │   └── response.ts
-│   ├── db.config.ts         # 데이터베이스 설정
-│   ├── swagger.ts           # Swagger 설정
-│   └── app.ts               # 메인 애플리케이션
-├── scripts/
-│   └── migrate.js           # 마이그레이션 스크립트
-├── .env.example             # 환경변수 템플릿
-├── ecosystem.config.js      # PM2 설정
-├── .prettierrc.json         # Prettier 설정
-├── eslint.config.js         # ESLint 설정
-├── package.json
-├── tsconfig.json
-├── TROUBLESHOOTING.md       # 트러블슈팅 가이드
-└── TESTING.md               # 테스트 가이드
-```
 
 ---
 
@@ -89,13 +54,6 @@ cd Node.js
 
 # 의존성 설치
 npm install
-```
-
-### **2. 환경변수 설정**
-
-```bash
-# 환경변수 파일 생성
-cp .env.example .env
 ```
 
 **`.env` 파일 내용 (팀원별로 별도 공유):**

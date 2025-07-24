@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { searchYoutubeVideos } from '../controllers/youtubeSearchController.js';
-
+import { requireAuth } from '../middleware/authMiddleware.js';
 const router: Router = Router();
 
 /**
@@ -58,6 +58,6 @@ const router: Router = Router();
  *       500:
  *         description: YouTube API 요청 실패
  */
-router.get('/search', searchYoutubeVideos);
+router.get('/search', requireAuth, searchYoutubeVideos);
 
 export default router;

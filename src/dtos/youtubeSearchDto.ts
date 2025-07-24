@@ -1,4 +1,4 @@
 export interface YoutubeSearchDto {
   query: string;
-  limit?: number;
+  limit?: string | number;
 }

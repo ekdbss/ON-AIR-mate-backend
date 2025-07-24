@@ -2,17 +2,26 @@ import swaggerJsdoc from 'swagger-jsdoc';
 const hostUrl =
   process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'http://54.180.254.48:3000'; // 환경변수로 관리
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
       title: 'ON-AIR-mate API',
       version: '1.0.0',
-      description: 'ON-AIR-mate API with Swagger',
+      description: isProduction
+        ? 'ON-AIR-mate API with Swagger'
+        : `ON-AIR-mate API with Swagger\n\n` +
+          ` **테스트 모드 활성화**\n` +
+          `- 인증이 필요한 API도 토큰 없이 테스트 가능합니다\n` +
+          `- 테스트 사용자(userId: 1)로 자동 인증됩니다\n` +
+          `- 실제 서비스에서는 정상적인 인증이 필요합니다`,
     },
     servers: [
       {
         url: hostUrl,
+        description: isProduction ? 'Production Server' : 'Development/Test Server',
       },
     ],
     components: {
@@ -20,7 +29,9 @@ const options: swaggerJsdoc.Options = {
         bearerAuth: {
           type: 'http',
           scheme: 'bearer',
-          bearerFormat: 'JWT',
+          description: isProduction
+            ? '인증 토큰 필요'
+            : '개발 환경: 토큰 없이도 테스트 가능 (자동 인증)',
         },
       },
       schemas: {
