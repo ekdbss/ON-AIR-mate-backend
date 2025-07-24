@@ -11,31 +11,31 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
+    - name: 코드 체크아웃
       uses: actions/checkout@v4
 
-    - name: Setup Node.js
+    - name: Node.js 설정
       uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'npm'
 
-    - name: Print Prettier Version
+    - name: Prettier 버전 출력
       run: npx prettier --version
 
-    - name: Install dependencies
+    - name: 의존성 설치
       run: npm ci
 
-    - name: Generate Prisma Client
+    - name: Prisma 클라이언트 생성
       run: npx prisma generate
 
-    - name: Run tests
+    - name: 테스트 실행
       run: |
         npm run lint
         npm run check
         npm run build
 
-    - name: Verify build
+    - name: 빌드 검증
       run: test -f dist/app.js
 
   deploy:
@@ -44,61 +44,60 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
-    - name: Checkout code
+    - name: 코드 체크아웃
       uses: actions/checkout@v4
 
-    - name: Setup SSH
+    - name: SSH 설정
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.EC2_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-    - name: Deploy to EC2
+    - name: EC2에 배포
       run: |
         ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
           set -e
           cd /home/ec2-user/on-air-mate
           
-          # Store current disk usage
+          # 현재 디스크 사용량 저장
           DISK_BEFORE=$(df -h / | tail -1 | awk "{print \$5}")
           
-          # Pull latest code
+          # 최신 코드 가져오기
           git fetch origin main
           git reset --hard origin/main
           
-          # AGGRESSIVE CLEANUP - Remove all non-essential files
-          echo "Removing non-essential files..."
+          # 적극적인 정리 - 필수적이지 않은 파일 모두 제거
+          echo "불필요한 파일 제거 중..."
           
-          # Remove all documentation
+          # 모든 문서 제거
           rm -f *.md
           
-          # Remove development and config files
+          # 개발 및 설정 파일 제거
           rm -rf .vscode scripts
           rm -f .env.example health_check.sh
           rm -f bucket-policy.json cors-config.json
           rm -f .eslintrc.json .prettierrc.json eslint.config.js
           
-          # Remove any test files
+          # 테스트 파일 제거
           find src -name "*.test.ts" -delete 2>/dev/null || true
           find src -name "*.spec.ts" -delete 2>/dev/null || true
           
-          # Remove logs and temp files
+          # 로그 및 임시 파일 제거
           find . -name "*.log" -delete 2>/dev/null || true
           find . -name ".DS_Store" -delete 2>/dev/null || true
           find . -name "Thumbs.db" -delete 2>/dev/null || true
           
-          # Clean npm cache before install
+          # npm 캐시 정리
           npm cache clean --force 2>/dev/null || true
           
-          # Remove old node_modules and reinstall
+          # 기존 node_modules 제거 후 재설치
           rm -rf node_modules
           
-          # Set environment variables
-          echo "Creating .env file..."
+          # 환경변수 설정
+          echo ".env 파일 생성 중..."
           echo "PORT=${{ secrets.PORT }}" > .env
           echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
           echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
           echo "DB_USER=${{ secrets.DB_USER }}" >> .env
@@ -109,55 +108,56 @@ jobs:
           echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
           echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
           echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}" >> .env
+          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
           chmod 600 .env
           
-          # Install ALL dependencies (including devDependencies for build)
-          echo "Installing all dependencies for build..."
+          # 모든 의존성 설치 (빌드를 위한 devDependencies 포함)
+          echo "빌드를 위한 모든 의존성 설치 중..."
           npm ci
           
-          # Generate Prisma client
+          # Prisma 클라이언트 생성
           npx prisma generate
           
-          # Build TypeScript
+          # TypeScript 빌드
           npm run build
           
-          # Restart PM2 process
+          # PM2 프로세스 재시작
           pm2 delete onairmate-api 2>/dev/null || true
           pm2 start dist/app.js --name "onairmate-api" \
             --max-memory-restart 200M \
             --time
           
-          # PM2 save 
+          # PM2 설정 저장
           pm2 save
           
           pm2 logs --lines 5 --nostream
           
-          # Health check
+          # 헬스 체크
           sleep 10
           for i in {1..5}; do
             if curl -sf http://localhost:3000/health >/dev/null; then
-              echo "Health check passed!"
+              echo "헬스 체크 성공!"
               pm2 flush
               find /tmp -name "npm-*" -type d -mtime +0 -exec rm -rf {} + 2>/dev/null || true
               exit 0
             fi
-            echo "Waiting for server to start... (attempt $i/5)"
+            echo "서버 시작 대기 중... ($i/5 시도)"
             sleep 5
           done
           
-          echo "Health check failed"
+          echo "헬스 체크 실패"
           pm2 logs --lines 20  # 실패 시 더 많은 로그 출력
           exit 1
                     
-          # Clean system temp files
+          # 시스템 임시 파일 정리
           find /tmp -name "npm-*" -type d -mtime +0 -exec rm -rf {} + 2>/dev/null || true
           
-          # Show disk usage improvement
+          # 디스크 사용량 개선 표시
           DISK_AFTER=$(df -h / | tail -1 | awk "{print \$5}")
-          echo "Disk usage: $DISK_BEFORE -> $DISK_AFTER"
+          echo "디스크 사용량: $DISK_BEFORE -> $DISK_AFTER"
         '
 
-    - name: Verify deployment
+    - name: 배포 검증
       run: |
         sleep 5
         curl -sf http://${{ secrets.EC2_HOST }}:3000/health || exit 1

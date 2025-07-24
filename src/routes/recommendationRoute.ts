@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { recommendVideos } from '../controllers/recommendationController.js';
+import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
@@ -9,6 +10,8 @@ const router = Router();
  *   get:
  *     summary: 검색어 기반 추천 영상 조회
  *     tags: [YouTube]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: keyword
@@ -32,6 +35,6 @@ const router = Router();
  *       400:
  *         description: 잘못된 요청 (키워드 누락 또는 limit 파라미터 오류)
  */
-router.get('/recommendations', recommendVideos);
+router.get('/recommendations', requireAuth, recommendVideos);
 
 export default router;

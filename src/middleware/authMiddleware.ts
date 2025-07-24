@@ -23,7 +23,18 @@ export const requireAuth = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    // Authorization 헤더 확인
+    // 개발 환경에서는 무조건 인증 우회
+    if (process.env.NODE_ENV === 'development') {
+      req.user = {
+        id: '1',
+        nickname: '테스트사용자',
+        userId: 1,
+      };
+      console.log('개발 환경: 인증 우회');
+      return next();
+    }
+
+    // 프로덕션에서는 정상 인증 처리
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -31,7 +42,7 @@ export const requireAuth = async (
     }
 
     // 토큰 추출
-    const token = authHeader.substring(7); // "Bearer " 제거
+    const token = authHeader.substring(7);
 
     if (!token) {
       return sendError(res, '인증이 필요합니다.', 401);
@@ -67,6 +78,16 @@ export const optionalAuth = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
+    // 개발 환경에서는 기본 사용자 설정
+    if (process.env.NODE_ENV === 'development' && !req.headers.authorization) {
+      req.user = {
+        id: '1',
+        nickname: '테스트사용자',
+        userId: 1,
+      };
+      return next();
+    }
+
     const authHeader = req.headers.authorization;
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
