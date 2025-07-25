@@ -7,8 +7,9 @@ import { Request, Response, NextFunction } from 'express';
 import AppError from './AppError.js';
 import { sendError } from '../../utils/response.js';
 
-const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
-  next();
+const errorHandler = (err: Error, req: Request, res: Response, _next: NextFunction) => {
+  void _next;
+
   if (err instanceof AppError) {
     return sendError(res, err.message, err.statusCode);
   }
