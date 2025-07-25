@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
-import { sendError } from '../utils/response.js';
-import { saveYoutubeVideo } from '../services/youtubeDetailService.js';
+import { sendError } from '../utils/response';
+import { saveYoutubeVideo } from '../services/youtubeDetailService';
 
 export const getYoutubeVideoDetail = async (
   req: Request<{ videoId: string }>,
@@ -9,6 +9,12 @@ export const getYoutubeVideoDetail = async (
 ): Promise<void> => {
   try {
     const { videoId } = req.params;
+
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      sendError(res, '인증 정보가 누락되었습니다.', 401, 'UNAUTHORIZED');
+      return;
+    }
 
     const apiKey = process.env.YOUTUBE_API_KEY;
     if (!apiKey) {
