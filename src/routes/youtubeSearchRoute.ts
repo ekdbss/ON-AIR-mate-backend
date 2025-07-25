@@ -58,6 +58,6 @@ const router: Router = Router();
  *       500:
  *         description: YouTube API 요청 실패
  */
-router.get('/search', requireAuth, searchYoutubeVideos);
+router.get('/search', requireAuth, searchYoutubeVideos); // 인증 미들웨어 사용
 
 export default router;
