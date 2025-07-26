@@ -57,6 +57,8 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     const token = generateToken();
     await updateUserToken(user.userId, token);
 
+    console.log(`로그인 완료: ${user.userId}, ${user.nickname}`);
+
     sendSuccess(res, {
       accessToken: token,
       refreshToken: token, // API 명세서 준수를 위해 동일한 토큰 반환
