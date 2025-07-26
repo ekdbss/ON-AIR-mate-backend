@@ -32,7 +32,9 @@ const corsOptions = {
 
     // 프로덕션 환경에서는 허용된 도메인만
     const allowedOrigins = [
+      //수정1
       address,
+      'https://54.180.254.48:3000',
       //'https://your-frontend-domain.com', // 실제 프론트엔드 도메인으로 변경
       //'https://onairmate.vercel.app', // 예시 도메인
       'http://localhost:3000', // 로컬 개발용
