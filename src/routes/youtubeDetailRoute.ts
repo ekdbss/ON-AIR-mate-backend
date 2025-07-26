@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getYoutubeVideoDetail } from '../controllers/youtubeDetailController';
+import { getYoutubeVideoDetail } from '../controllers/youtubeDetailController.js';
 import { requireAuth } from '../middleware/authMiddleware';
 
 const router = Router();
