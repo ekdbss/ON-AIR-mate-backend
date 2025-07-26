@@ -7,6 +7,7 @@ import { sendSuccess } from './utils/response.js';
 import { requireAuth } from './middleware/authMiddleware.js';
 import youtubeRoutes from './routes/recommendationRoute.js';
 import youtubeSearchRouter from './routes/youtubeSearchRoute.js';
+import youtubeDetailRouter from './routes/youtubeDetailRoute.js';
 import authRoutes from './routes/authRoutes.js';
 import swaggerUi from 'swagger-ui-express';
 import { specs } from './swagger.js';
@@ -124,6 +125,7 @@ app.use('/api/auth', authRoutes);
 // app.use('/api/rooms', roomRoutes);
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/youtube', youtubeSearchRouter);
+app.use('/api/youtube/videos', youtubeDetailRouter);
 
 // 404 에러 핸들링
 app.use((req: Request, res: Response, next: NextFunction) => {
