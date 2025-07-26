@@ -10,11 +10,6 @@ export const getYoutubeVideoDetail = async (
   try {
     const { videoId } = req.params;
 
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      sendError(res, '인증 정보가 누락되었습니다.', 401, 'UNAUTHORIZED');
-      return;
-    }
 
     const apiKey = process.env.YOUTUBE_API_KEY;
     if (!apiKey) {
