@@ -10,7 +10,6 @@ export const getYoutubeVideoDetail = async (
   try {
     const { videoId } = req.params;
 
-
     const apiKey = process.env.YOUTUBE_API_KEY;
     if (!apiKey) {
       sendError(res, '서버 설정 오류: YOUTUBE_API_KEY가 누락되었습니다.', 500, 'SERVER_ERROR');
