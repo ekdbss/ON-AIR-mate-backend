@@ -12,7 +12,7 @@ import authRoutes from './routes/authRoutes.js';
 import swaggerUi from 'swagger-ui-express';
 import { specs } from './swagger.js';
 import { createServer } from 'http';
-import { initSocketServer } from './socket';
+import { initSocketServer } from './socket/index.js';
 import roomRoutes from './routes/roomRoute.js';
 import chatDirectRoutes from './routes/chatDirectRoute.js';
 dotenv.config();
