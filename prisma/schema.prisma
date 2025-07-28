@@ -9,7 +9,7 @@ datasource db {
 
 model User {
   userId                  Int                   @id @default(autoincrement()) @map("user_id")
-  loginId                String                @unique @db.VarChar(50)
+  loginId                 String                @unique @db.VarChar(50)
   password                String                @db.VarChar(255)
   nickname                String                @unique @db.VarChar(30)
   profileImage            String?               @map("profile_image") @db.VarChar(500)
@@ -37,7 +37,7 @@ model User {
   userChatMessages        UserChatMessage[]
   userChats1              UserChat[]            @relation("User1")
   userChats2              UserChat[]            @relation("User2")
-
+  userFeedbacks           UserFeedback[]
   @@map("users")
 }
 
@@ -97,6 +97,7 @@ model Room {
   maxParticipants     Int               @default(6) @map("max_participants")
   currentParticipants Int               @default(1) @map("current_participants")
   popularity          Int               @default(0)
+  video_id            String?           @db.VarChar(20)
   autoArchive         Boolean           @default(true) @map("auto_archive")
   inviteAuth          InviteAuth        @default(all) @map("invite_auth")
   watched30s          Boolean           @default(false) @map("watched_30s")
@@ -106,19 +107,23 @@ model Room {
   messages            RoomMessage[]
   participants        RoomParticipant[]
   host                User              @relation("HostUser", fields: [hostId], references: [userId], onDelete: Cascade)
+  youtube_videos      YoutubeVideo?     @relation(fields: [video_id], references: [videoId])
 
   @@index([hostId], map: "rooms_host_id_fkey")
+  @@index([video_id], map: "rooms_video_id_fkey")
   @@map("rooms")
 }
 
 model RoomParticipant {
-  participantId Int             @id @default(autoincrement()) @map("participant_id")
-  roomId        Int             @map("room_id")
-  userId        Int             @map("user_id")
-  role          ParticipantRole @default(participant)
-  joinedAt      DateTime        @default(now()) @map("joined_at")
-  room          Room            @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
-  user          User            @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  participantId   Int             @id @default(autoincrement()) @map("participant_id")
+  roomId          Int             @map("room_id")
+  userId          Int             @map("user_id")
+  role            ParticipantRole @default(participant)
+  joinedAt        DateTime        @default(now()) @map("joined_at")
+  last_joined_at  DateTime        @default(now())
+  total_stay_time Int             @default(0)
+  room            Room            @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
+  user            User            @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@unique([roomId, userId], name: "unique_participant")
   @@index([userId], map: "room_participants_user_id_fkey")
@@ -277,8 +282,20 @@ model YoutubeVideo {
   duration    String?   @db.VarChar(20)
   uploadedAt  DateTime? @map("uploaded_at")
   createdAt   DateTime  @default(now()) @map("created_at")
+  rooms       Room[]
 
   @@map("youtube_videos")
+}
+
+model UserFeedback {
+  feedbackId Int      @id @default(autoincrement()) @map("feedback_id")
+  userId     Int      @map("user_id")
+  content    String   @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId], map: "user_feedbacks_user_id_fkey")
+  @@map("user_feedbacks")
 }
 
 enum FriendshipStatus {
