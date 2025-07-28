@@ -1,10 +1,10 @@
 import { Server } from 'socket.io';
 import { Server as HTTPServer } from 'http';
-import chatHandler from './chatHandler';
+import chatHandler from './chatHandler.js';
 import { createAdapter } from '@socket.io/redis-adapter';
 import Redis from 'ioredis';
 import { findUserByToken } from '../services/authServices.js';
-import { onlineUser, offlineUser } from './redisManager';
+import { onlineUser, offlineUser } from './redisManager.js';
 
 let io: Server;
 
