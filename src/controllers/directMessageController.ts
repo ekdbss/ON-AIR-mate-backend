@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import * as messageService from '../services/messageServices';
+import * as messageService from '../services/messageServices.js';
 import { sendSuccess, sendError } from '../utils/response.js';
 
 export const postDirectMessage = async (req: Request, res: Response, next: NextFunction) => {

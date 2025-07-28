@@ -1,6 +1,6 @@
 import { PrismaClient, RoomParticipant } from '@prisma/client';
 import { Participant, createNewRoom } from '../dtos/roomDto.js';
-import { findUserById } from './authServices';
+import { findUserById } from './authServices.js';
 
 const prisma = new PrismaClient();
 
