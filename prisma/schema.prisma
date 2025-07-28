@@ -91,13 +91,13 @@ model UserBlock {
 model Room {
   roomId              Int               @id @default(autoincrement()) @map("room_id")
   hostId              Int               @map("host_id")
+  videoId             String            @map("video_id")
   roomName            String            @map("room_name") @db.VarChar(100)
   isPublic            Boolean           @default(true) @map("is_public")
   isActive            Boolean           @default(true) @map("is_active")
   maxParticipants     Int               @default(6) @map("max_participants")
   currentParticipants Int               @default(1) @map("current_participants")
   popularity          Int               @default(0)
-  video_id            String?           @db.VarChar(20)
   autoArchive         Boolean           @default(true) @map("auto_archive")
   inviteAuth          InviteAuth        @default(all) @map("invite_auth")
   watched30s          Boolean           @default(false) @map("watched_30s")
@@ -107,23 +107,21 @@ model Room {
   messages            RoomMessage[]
   participants        RoomParticipant[]
   host                User              @relation("HostUser", fields: [hostId], references: [userId], onDelete: Cascade)
-  youtube_videos      YoutubeVideo?     @relation(fields: [video_id], references: [videoId])
-
+  video               YoutubeVideo      @relation("RoomVideo", fields: [videoId], references: [videoId], onDelete: Cascade)
   @@index([hostId], map: "rooms_host_id_fkey")
-  @@index([video_id], map: "rooms_video_id_fkey")
+  @@index([videoId], map: "rooms_video_id_fkey")
   @@map("rooms")
 }
 
 model RoomParticipant {
-  participantId   Int             @id @default(autoincrement()) @map("participant_id")
-  roomId          Int             @map("room_id")
-  userId          Int             @map("user_id")
-  role            ParticipantRole @default(participant)
-  joinedAt        DateTime        @default(now()) @map("joined_at")
-  last_joined_at  DateTime        @default(now())
-  total_stay_time Int             @default(0)
-  room            Room            @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
-  user            User            @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  participantId Int             @id @default(autoincrement()) @map("participant_id")
+  roomId        Int             @map("room_id")
+  userId        Int             @map("user_id")
+  role          ParticipantRole @default(participant)
+  joinedAt      DateTime        @default(now()) @map("joined_at")
+  leftAt        DateTime?       @map("left_at")
+  room          Room            @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@unique([roomId, userId], name: "unique_participant")
   @@index([userId], map: "room_participants_user_id_fkey")
@@ -282,7 +280,8 @@ model YoutubeVideo {
   duration    String?   @db.VarChar(20)
   uploadedAt  DateTime? @map("uploaded_at")
   createdAt   DateTime  @default(now()) @map("created_at")
-  rooms       Room[]
+  videoRooms             Room[]                @relation("RoomVideo")
+
 
   @@map("youtube_videos")
 }

@@ -24,15 +24,15 @@ export const requireAuth = async (
 ): Promise<void> => {
   try {
     // 개발 환경에서는 무조건 인증 우회
-    if (process.env.NODE_ENV === 'development') {
-      req.user = {
-        id: '1',
-        nickname: '테스트사용자',
-        userId: 1,
-      };
-      console.log('개발 환경: 인증 우회');
-      return next();
-    }
+    // if (process.env.NODE_ENV === 'development') {
+    //   req.user = {
+    //     id: '1',
+    //     nickname: '테스트사용자',
+    //     userId: 1,
+    //   };
+    //   console.log('개발 환경: 인증 우회');
+    //   return next();
+    // }
 
     // 프로덕션에서는 정상 인증 처리
     const authHeader = req.headers.authorization;
