@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
+<<<<<<< HEAD
 import { sendError } from '../utils/response';
+=======
+import { sendError } from '../utils/response.js';
+>>>>>>> 33773204de50beff0503de18d3814af5eacfa240
 import { saveYoutubeVideo } from '../services/youtubeDetailService.js';
 
 export const getYoutubeVideoDetail = async (

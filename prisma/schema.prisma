@@ -9,7 +9,7 @@ datasource db {
 
 model User {
   userId                  Int                   @id @default(autoincrement()) @map("user_id")
-  loginId                String                @unique @db.VarChar(50)
+  loginId                 String                @unique @db.VarChar(50)
   password                String                @db.VarChar(255)
   nickname                String                @unique @db.VarChar(30)
   profileImage            String?               @map("profile_image") @db.VarChar(500)
@@ -37,7 +37,7 @@ model User {
   userChatMessages        UserChatMessage[]
   userChats1              UserChat[]            @relation("User1")
   userChats2              UserChat[]            @relation("User2")
-
+  userFeedbacks           UserFeedback[]
   @@map("users")
 }
 
@@ -91,6 +91,7 @@ model UserBlock {
 model Room {
   roomId              Int               @id @default(autoincrement()) @map("room_id")
   hostId              Int               @map("host_id")
+  videoId             String            @map("video_id")
   roomName            String            @map("room_name") @db.VarChar(100)
   isPublic            Boolean           @default(true) @map("is_public")
   isActive            Boolean           @default(true) @map("is_active")
@@ -106,8 +107,9 @@ model Room {
   messages            RoomMessage[]
   participants        RoomParticipant[]
   host                User              @relation("HostUser", fields: [hostId], references: [userId], onDelete: Cascade)
-
+  video               YoutubeVideo      @relation("RoomVideo", fields: [videoId], references: [videoId], onDelete: Cascade)
   @@index([hostId], map: "rooms_host_id_fkey")
+  @@index([videoId], map: "rooms_video_id_fkey")
   @@map("rooms")
 }
 
@@ -117,6 +119,7 @@ model RoomParticipant {
   userId        Int             @map("user_id")
   role          ParticipantRole @default(participant)
   joinedAt      DateTime        @default(now()) @map("joined_at")
+  leftAt        DateTime?       @map("left_at")
   room          Room            @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
   user          User            @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
@@ -277,8 +280,21 @@ model YoutubeVideo {
   duration    String?   @db.VarChar(20)
   uploadedAt  DateTime? @map("uploaded_at")
   createdAt   DateTime  @default(now()) @map("created_at")
+  videoRooms             Room[]                @relation("RoomVideo")
+
 
   @@map("youtube_videos")
+}
+
+model UserFeedback {
+  feedbackId Int      @id @default(autoincrement()) @map("feedback_id")
+  userId     Int      @map("user_id")
+  content    String   @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId], map: "user_feedbacks_user_id_fkey")
+  @@map("user_feedbacks")
 }
 
 enum FriendshipStatus {
