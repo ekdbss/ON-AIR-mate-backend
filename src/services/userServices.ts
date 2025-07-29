@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client';
 import AppError from '../middleware/errors/AppError.js';
 
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma.js';
 
 // 사용자 프로필 조회
 export const getUserProfile = async (userId: number) => {

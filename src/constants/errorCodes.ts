@@ -1,3 +1,4 @@
+// src/constants/errorCodes.ts
 export const ERROR_CODES = {
   // 인증 관련 (AUTH_XXX)
   AUTH_001: { message: '입력하신 정보가 잘못되었습니다.', statusCode: 401 },
@@ -23,6 +24,9 @@ export const ERROR_CODES = {
   FRIEND_003: { message: '자신에게는 친구 요청을 보낼 수 없습니다.', statusCode: 400 },
   FRIEND_004: { message: '차단된 사용자입니다.', statusCode: 403 },
   FRIEND_005: { message: '존재하지 않는 사용자입니다.', statusCode: 404 },
+  FRIEND_006: { message: '친구 요청을 찾을 수 없습니다.', statusCode: 404 },
+  FRIEND_007: { message: '친구가 아닙니다.', statusCode: 403 },
+  FRIEND_008: { message: '방에 초대 권한이 없습니다.', statusCode: 403 },
 
   // 컬렉션 관련 (COLLECTION_XXX)
   COLLECTION_001: { message: '컬렉션이 존재하지 않습니다.', statusCode: 404 },

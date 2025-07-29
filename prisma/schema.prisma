@@ -178,21 +178,24 @@ model UserChatMessage {
 }
 
 model Bookmark {
-  bookmarkId         Int        @id @default(autoincrement()) @map("bookmark_id")
-  userId             Int        @map("user_id")
-  roomId             Int        @map("room_id")
-  title              String?    @db.VarChar(50)
-  content            String?    @db.Text
-  originalBookmarkId Int?       @map("original_bookmark_id")
-  createdAt          DateTime   @default(now()) @map("created_at")
-  originalBookmark   Bookmark?  @relation("BookmarkCopy", fields: [originalBookmarkId], references: [bookmarkId])
-  copiedBookmarks    Bookmark[] @relation("BookmarkCopy")
-  room               Room       @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
-  user               User       @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  bookmarkId         Int         @id @default(autoincrement()) @map("bookmark_id")
+  userId             Int         @map("user_id")
+  roomId             Int         @map("room_id")
+  collectionId       Int?        @map("collection_id")
+  title              String?     @db.VarChar(50)
+  content            String?     @db.Text
+  originalBookmarkId Int?        @map("original_bookmark_id")
+  createdAt          DateTime    @default(now()) @map("created_at")
+  originalBookmark   Bookmark?   @relation("BookmarkCopy", fields: [originalBookmarkId], references: [bookmarkId])
+  copiedBookmarks    Bookmark[]  @relation("BookmarkCopy")
+  room               Room        @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
+  user               User        @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  collection         Collection? @relation(fields: [collectionId], references: [collectionId], onDelete: SetNull)
 
   @@index([originalBookmarkId], map: "bookmarks_original_bookmark_id_fkey")
   @@index([roomId], map: "bookmarks_room_id_fkey")
   @@index([userId], map: "bookmarks_user_id_fkey")
+  @@index([collectionId], map: "bookmarks_collection_id_fkey")
   @@map("bookmarks")
 }
 
@@ -205,11 +208,14 @@ model Collection {
   bookmarkCount        Int                  @default(0) @map("bookmark_count")
   isLiked              Boolean              @default(false) @map("is_liked")
   originalCollectionId Int?                 @map("original_collection_id")
+  coverImage           String?              @map("cover_image") @db.VarChar(500)
   createdAt            DateTime             @default(now()) @map("created_at")
+  updatedAt            DateTime             @updatedAt @map("updated_at")
   originalCollection   Collection?          @relation("CollectionCopy", fields: [originalCollectionId], references: [collectionId])
   copiedCollections    Collection[]         @relation("CollectionCopy")
   user                 User                 @relation(fields: [userId], references: [userId], onDelete: Cascade)
   sharedCollections    SharedCollection[]
+  bookmarks            Bookmark[]
 
   @@index([originalCollectionId], map: "collections_original_collection_id_fkey")
   @@index([userId], map: "collections_user_id_fkey")
