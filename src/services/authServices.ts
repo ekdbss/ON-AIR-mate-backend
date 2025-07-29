@@ -1,7 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
-
+import { prisma } from '../lib/prisma.js';
 /**
  * 닉네임으로 유저 찾기
  */
