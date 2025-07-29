@@ -49,14 +49,14 @@ const corsOptions = {
     const allowedOrigins = [
       //수정1 - undefined 값 필터링
       address,
-      'http://54.180.254.48:3000',  // HTTP로 수정
+      'http://54.180.254.48:3000', // HTTP로 수정
       'https://54.180.254.48:3000',
       //'https://your-frontend-domain.com', // 실제 프론트엔드 도메인으로 변경
       //'https://onairmate.vercel.app', // 예시 도메인
       'http://localhost:3000', // 로컬 개발용
       'http://localhost:3001', // 로컬 개발용
     ].filter(Boolean); // undefined나 null 값 제거
-    
+
     console.log('배포 주소', address);
     console.log('연결 origin:', origin);
 
