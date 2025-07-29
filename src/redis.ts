@@ -9,13 +9,15 @@ const redis = new Redis({
   password: process.env.REDIS_PASSWORD || undefined,
   maxRetriesPerRequest: 3,
   connectTimeout: 60000,
-  lazyConnect: true,
+  //lazyConnect: true,
 });
 
 redis.on('connect', () => {
   console.log('🔗 Redis connected');
 });
-
+redis.on('ready', () => {
+  console.log('✅ Redis ready to use');
+});
 redis.on('error', err => {
   console.error('❌ Redis connection error:', err);
 });
