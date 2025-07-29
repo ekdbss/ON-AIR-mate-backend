@@ -1,12 +1,12 @@
 import { Server, Socket } from 'socket.io';
-import { joinRoom, enterRoom, leaveRoom, isParticipant, offlineUser } from './redisManager';
+import { joinRoom, enterRoom, leaveRoom, isParticipant, offlineUser } from './redisManager.js';
 import {
   saveRoomMessage,
   saveDirectMessage,
   getOrCreateChatRoom,
   getChatRoom,
-} from '../services/messageServices';
-import { chatMessageType, MessageType } from '../dtos/messageDto';
+} from '../services/messageServices.js';
+import { chatMessageType, MessageType } from '../dtos/messageDto.js';
 
 export default function chatHandler(io: Server, socket: Socket) {
   const user = socket.data.user;

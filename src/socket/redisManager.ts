@@ -1,4 +1,4 @@
-import redis from '../redis';
+import redis from '../redis.js';
 
 export const ROOM_PARTICIPANTS_KEY = (roomId: number) => `room:${roomId}:participants`;
 

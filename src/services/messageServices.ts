@@ -1,5 +1,5 @@
 import { PrismaClient, UserChatMessage } from '@prisma/client';
-import { SaveRoomMessageInput, SendDirectMessageDTO, RoomMessageDTO } from '../dtos/messageDto';
+import { SaveRoomMessageInput, SendDirectMessageDTO, RoomMessageDTO } from '../dtos/messageDto.js';
 
 const prisma = new PrismaClient();
 

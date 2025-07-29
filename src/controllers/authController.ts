@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { sendSuccess, sendError } from '../utils/response.js';
+import { sendSuccess } from '../utils/response.js';
+import AppError from '../middleware/errors/AppError.js';
 import {
   createUser,
   findUserByNickname,
@@ -36,21 +37,13 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     // 유저 확인
     const user = await findUserByUsername(username);
     if (!user) {
-      return sendError(
-        res,
-        '입력하신 정보가 잘못되었습니다. 아이디와 비밀번호를 정확히 입력해주세요.',
-        401,
-      );
+      throw new AppError('AUTH_001'); // '입력하신 정보가 잘못되었습니다.'
     }
 
     // 비밀번호 검증
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return sendError(
-        res,
-        '입력하신 정보가 잘못되었습니다. 아이디와 비밀번호를 정확히 입력해주세요.',
-        401,
-      );
+      throw new AppError('AUTH_001'); // '입력하신 정보가 잘못되었습니다.'
     }
 
     // 간단한 토큰 생성 및 저장
@@ -82,13 +75,13 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
     // 닉네임 중복 확인
     const checkNickname = await findUserByNickname(nickname);
     if (checkNickname) {
-      return sendError(res, '사용할 수 없는 닉네임입니다.', 409);
+      throw new AppError('AUTH_002'); // '사용할 수 없는 닉네임입니다.'
     }
 
     // 아이디 중복 확인
     const existingUser = await findUserByUsername(username);
     if (existingUser) {
-      return sendError(res, '사용할 수 없는 아이디입니다.', 409);
+      throw new AppError('AUTH_003'); // '사용할 수 없는 아이디입니다.'
     }
 
     // 비밀번호 해시화
@@ -120,10 +113,11 @@ export const checkNickname = async (req: Request, res: Response, next: NextFunct
 
     // 닉네임 형식 검증 (3~10자)
     if (nickname.length < 3 || nickname.length > 10) {
-      return sendSuccess(res, {
+      sendSuccess(res, {
         available: false,
         message: '닉네임은 3~10자 이내로 입력해주세요.',
       });
+      return;
     }
 
     const existingUser = await findUserByNickname(nickname);
@@ -150,13 +144,13 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
     const { refreshToken } = req.body;
 
     if (!refreshToken) {
-      return sendError(res, '리프레시 토큰이 필요합니다.', 401);
+      throw new AppError('AUTH_006', '리프레시 토큰이 필요합니다.');
     }
 
     // 토큰으로 유저 찾기
     const user = await findUserByToken(refreshToken);
     if (!user) {
-      return sendError(res, '유효하지 않은 리프레시 토큰입니다.', 401);
+      throw new AppError('AUTH_006'); // '유효하지 않은 토큰입니다.'
     }
 
     // 새로운 토큰 생성

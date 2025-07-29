@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { findUserByToken } from '../services/authServices.js';
-import { sendError } from '../utils/response.js';
+import AppError from '../middleware/errors/AppError.js';
 
 // Express Request 타입 확장
 declare module 'express-serve-static-core' {
@@ -38,21 +38,21 @@ export const requireAuth = async (
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return sendError(res, '인증이 필요합니다.', 401);
+      throw new AppError('AUTH_007'); // '인증이 필요합니다.'
     }
 
     // 토큰 추출
     const token = authHeader.substring(7);
 
     if (!token) {
-      return sendError(res, '인증이 필요합니다.', 401);
+      throw new AppError('AUTH_007'); // '인증이 필요합니다.'
     }
 
     // DB에서 토큰으로 유저 찾기
     const user = await findUserByToken(token);
 
     if (!user) {
-      return sendError(res, '유효하지 않은 토큰입니다.', 401);
+      throw new AppError('AUTH_006'); // '유효하지 않은 토큰입니다.'
     }
 
     // req.user에 유저 정보 저장
@@ -63,8 +63,14 @@ export const requireAuth = async (
     };
 
     next();
-  } catch {
-    return sendError(res, '인증 처리 중 오류가 발생했습니다.', 500);
+  } catch (error) {
+    // AppError인 경우 그대로 전달
+    if (error instanceof AppError) {
+      next(error);
+    } else {
+      // 예상치 못한 에러
+      next(new AppError('GENERAL_004', '인증 처리 중 오류가 발생했습니다.'));
+    }
   }
 };
 
@@ -108,6 +114,7 @@ export const optionalAuth = async (
 
     next();
   } catch {
+    // 선택적 인증은 에러가 발생해도 무시
     next();
   }
 };

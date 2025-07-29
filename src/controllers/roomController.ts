@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import * as roomService from '../services/roomServices';
-import * as messageService from '../services/messageServices';
+import * as roomService from '../services/roomServices.js';
+import * as messageService from '../services/messageServices.js';
 import { sendSuccess, sendError } from '../utils/response.js';
 
 export const createRoom = async (req: Request, res: Response, next: NextFunction) => {

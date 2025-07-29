@@ -8,12 +8,12 @@ export const recommendVideos = async (req: Request, res: Response, next: NextFun
   const limit = req.query.limit as string;
 
   if (!keyword || typeof keyword !== 'string') {
-    return next(new AppError(400, '검색어를 입력해주세요.'));
+    return next(new AppError('SEARCH_001')); // '검색어를 입력해주세요.'
   }
 
   const parsedLimit = limit ? parseInt(limit, 10) : 3;
   if (isNaN(parsedLimit) || parsedLimit <= 0 || parsedLimit > 50) {
-    return next(new AppError(400, 'limit 파라미터는 1과 50 사이의 숫자여야 합니다.'));
+    return next(new AppError('GENERAL_001', 'limit 파라미터는 1과 50 사이의 숫자여야 합니다.'));
   }
 
   try {
@@ -21,9 +21,9 @@ export const recommendVideos = async (req: Request, res: Response, next: NextFun
     sendSuccess(res, videos);
   } catch (error) {
     if (error instanceof Error) {
-      return next(new AppError(500, error.message));
+      return next(new AppError('GENERAL_004', error.message));
     } else {
-      next(new AppError(500, '알 수 없는 오류가 발생했습니다.'));
+      next(new AppError('GENERAL_004'));
     }
   }
 };
