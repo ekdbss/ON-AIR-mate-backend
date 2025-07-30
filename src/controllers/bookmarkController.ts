@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { sendError, sendSuccess } from '../utils/response';
+import { sendError, sendSuccess } from '../utils/response.js';
 import AppError from '../middleware/errors/AppError.js';
-import * as bookmarkService from '../services/bookmarkService';
+import * as bookmarkService from '../services/bookmarkService.js';
+import { tryParseBookmarkMessage } from '../utils/parseBookmark.js';
 
 // 1. 북마크 생성 API (POST /bookmarks)
 export const createBookmark = async (req: Request, res: Response, next: NextFunction) => {
@@ -13,7 +14,13 @@ export const createBookmark = async (req: Request, res: Response, next: NextFunc
       return sendError(res, '유저 정보가 없습니다.', 401);
     }
 
-    const bookmark = await bookmarkService.createBookmark(userId, roomId, message);
+    const result = tryParseBookmarkMessage(message);
+    if (!result) {
+      return sendError(res, '메시지에서 유효한 타임라인을 찾을 수 없습니다.', 400);
+    }
+    const { timeline, content } = result;
+
+    const bookmark = await bookmarkService.createBookmark(userId, roomId, content, timeline);
 
     sendSuccess(res, {
       bookmarkId: bookmark.bookmarkId,

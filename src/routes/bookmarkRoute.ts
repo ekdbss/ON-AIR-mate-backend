@@ -5,8 +5,8 @@ import {
   deleteBookmark,
   moveBookmarkToCollection,
   createRoomFromBookmark,
-} from '../controllers/bookmarkController';
-import { requireAuth } from '../middleware/authMiddleware';
+} from '../controllers/bookmarkController.js';
+import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -34,17 +34,26 @@ const router = express.Router();
  *             properties:
  *               roomId:
  *                 type: number
+ *                 example: 1
  *               message:
  *                 type: string
+ *                 example: "01:23:45 문문문보경이 나왔다"
+ *                 description: |
+ *                   북마크 메시지는 `MM:SS 내용` 또는 `HH:MM:SS 내용` 형식으로 작성해야 합니다.
+ *                   - 예: "12:34 삼구삼진", "01:02:30 병살 가자"
+ *                   - 앞의 시간은 북마크 타임라인으로, 뒤는 내용으로 저장됩니다.
  *             required:
  *               - roomId
  *               - message
  *     responses:
  *       200:
  *         description: 북마크 생성 성공
+ *       400:
+ *         description: 잘못된 형식의 메시지
  *       401:
  *         description: 인증 실패
  */
+
 // 1. 북마크 생성
 router.post('/', requireAuth, createBookmark);
 
