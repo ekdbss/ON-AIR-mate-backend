@@ -1,10 +1,6 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
-<<<<<<< HEAD
-import { sendError } from '../utils/response';
-=======
 import { sendError } from '../utils/response.js';
->>>>>>> 469a2aa (Fix: resolved merge conflict after pulling from upstream main)
 import { saveYoutubeVideo } from '../services/youtubeDetailService.js';
 
 export const getYoutubeVideoDetail = async (

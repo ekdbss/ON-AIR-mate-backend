@@ -11,6 +11,7 @@ import youtubeDetailRouter from './routes/youtubeDetailRoute.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import friendRoutes from './routes/friendRoutes.js';
+import bookmarkRoutes from './routes/bookmarkRoute.js';
 import swaggerUi from 'swagger-ui-express';
 import { specs } from './swagger.js';
 import { createServer } from 'http';
@@ -148,6 +149,7 @@ app.use('/api/chat/direct', chatDirectRoutes);
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/youtube', youtubeSearchRouter);
 app.use('/api/youtube/videos', youtubeDetailRouter);
+app.use('/api/bookmarks', bookmarkRoutes);
 
 // 404 에러 핸들링
 app.use((req: Request, res: Response, next: NextFunction) => {
