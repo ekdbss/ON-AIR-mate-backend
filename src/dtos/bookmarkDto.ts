@@ -10,5 +10,5 @@ export interface MoveBookmarkDto {
 export interface CreateRoomFromBookmarkDto {
   roomTitle: string;
   maxParticipants: number;
-  isPrivate: boolean;
+  isPublic: boolean;
 }
