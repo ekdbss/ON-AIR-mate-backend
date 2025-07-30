@@ -2,12 +2,18 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 // 1. 북마크 생성 서비스
-export const createBookmark = async (userId: number, roomId: number, message: string) => {
+export const createBookmark = async (
+  userId: number,
+  roomId: number,
+  message: string,
+  timeline: number,
+) => {
   return await prisma.bookmark.create({
     data: {
       userId,
       roomId,
       content: message,
+      timeline,
     },
   });
 };
@@ -51,6 +57,7 @@ export const getBookmarks = async (
     videoTitle: bookmark.room?.video?.title,
     videoThumbnail: bookmark.room?.video?.thumbnail,
     message: bookmark.content,
+    timeline: bookmark.timeline,
     createdAt: bookmark.createdAt,
     collectionTitle: bookmark.collection?.title ?? null,
   }));
