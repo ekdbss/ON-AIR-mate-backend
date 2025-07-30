@@ -14,6 +14,14 @@ export const createBookmark = async (req: Request, res: Response, next: NextFunc
       return sendError(res, '유저 정보가 없습니다.', 401);
     }
 
+    if (!roomId || typeof roomId !== 'number') {
+      return sendError(res, '유효한 방 ID가 필요합니다.', 400);
+    }
+
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return sendError(res, '메시지가 필요합니다.', 400);
+    }
+
     const result = tryParseBookmarkMessage(message);
     if (!result) {
       return sendError(res, '메시지에서 유효한 타임라인을 찾을 수 없습니다.', 400);
