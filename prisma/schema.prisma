@@ -102,6 +102,8 @@ model Room {
   autoArchive         Boolean           @default(true) @map("auto_archive")
   inviteAuth          InviteAuth        @default(all) @map("invite_auth")
   watched30s          Boolean           @default(false) @map("watched_30s")
+  startType           VideoStartType    @default(BEGINNING)
+  startTime           Int               @default(0)
   createdAt           DateTime          @default(now()) @map("created_at")
   updatedAt           DateTime          @updatedAt @map("updated_at")
   bookmarks           Bookmark[]
@@ -184,6 +186,7 @@ model Bookmark {
   collectionId       Int?        @map("collection_id")
   title              String?     @db.VarChar(50)
   content            String?     @db.Text
+  timeline           Int?        @default(0)
   originalBookmarkId Int?        @map("original_bookmark_id")
   createdAt          DateTime    @default(now()) @map("created_at")
   originalBookmark   Bookmark?   @relation("BookmarkCopy", fields: [originalBookmarkId], references: [bookmarkId])
@@ -341,6 +344,11 @@ enum ChatMessageType {
   roomInvite
 
   @@map("chat_message_type")
+}
+
+enum VideoStartType {
+  BOOKMARK
+  BEGINNING
 }
 
 enum CollectionVisibility {
