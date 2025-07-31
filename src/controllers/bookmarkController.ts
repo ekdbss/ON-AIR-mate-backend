@@ -4,7 +4,7 @@ import AppError from '../middleware/errors/AppError.js';
 import * as bookmarkService from '../services/bookmarkService.js';
 import { tryParseBookmarkMessage } from '../utils/parseBookmark.js';
 
-// 1. 북마크 생성 API (POST /bookmarks)
+// 1. 북마크 생성 API (POST /api/bookmarks)
 export const createBookmark = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { roomId, message } = req.body;
@@ -42,7 +42,7 @@ export const createBookmark = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-// 2. 북마크 목록 조회 API (GET /bookmarks)
+// 2. 북마크 목록 조회 API (GET /api/bookmarks)
 export const getBookmarks = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.userId;
@@ -75,7 +75,7 @@ export const getBookmarks = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-// 3. 북마크 삭제 API (DELETE /bookmarks/:bookmarkId)
+// 3. 북마크 삭제 API (DELETE /api/bookmarks/:bookmarkId)
 export const deleteBookmark = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.userId;
@@ -102,7 +102,7 @@ export const deleteBookmark = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-// 4. 북마크 컬렉션 이동 API (PUT /bookmarks/:bookmarkId/collection)
+// 4. 북마크 컬렉션 이동 API (PUT /api/bookmarks/:bookmarkId/collection)
 export const moveBookmarkToCollection = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.userId;
@@ -136,7 +136,7 @@ export const moveBookmarkToCollection = async (req: Request, res: Response, next
   }
 };
 
-// 5. 북마크로 방 생성 API (POST /bookmarks/:bookmarkId/create-room)
+// 5. 북마크로 방 생성 API (POST /api/bookmarks/:bookmarkId/create-room)
 export const createRoomFromBookmark = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.userId;
