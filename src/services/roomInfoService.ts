@@ -18,7 +18,6 @@ const getRoomInfoById = async (roomId: number): Promise<RoomInfoResponseDto> => 
     where: { roomId: roomId },
     include: {
       host: true,
-      video: true,
       _count: {
         select: { participants: true },
       },
@@ -39,9 +38,13 @@ const getRoomInfoById = async (roomId: number): Promise<RoomInfoResponseDto> => 
     throw new AppError('GENERAL_005', `ID가 ${roomId}인 방의 호스트 정보를 찾을 수 없습니다.`);
   }
 
-  console.log('[Service] Video data:', room.video);
+  const video = await prisma.youtubeVideo.findUnique({
+    where: { videoId: room.videoId },
+  });
 
-  if (!room.video) {
+  console.log('[Service] Video data:', video);
+
+  if (!video) {
     console.error(`[Service] Video for room ID ${roomId} not found.`);
     throw new AppError('ROOM_007', `ID가 ${roomId}인 방의 비디오 정보를 찾을 수 없습니다.`);
   }
@@ -50,10 +53,10 @@ const getRoomInfoById = async (roomId: number): Promise<RoomInfoResponseDto> => 
     roomId: room.roomId,
     roomTitle: room.roomName,
 
-    videoId: room.video.videoId,
-    videoTitle: room.video.title,
-    videoThumbnail: room.video.thumbnail ?? '',
-    duration: formatISO8601Duration(room.video.duration ?? 'PT0S'),
+    videoId: video.videoId,
+    videoTitle: video.title,
+    videoThumbnail: video.thumbnail ?? '',
+    duration: formatISO8601Duration(video.duration ?? 'PT0S'),
 
     hostNickname: room.host.nickname,
     hostProfileImage: room.host.profileImage || '',
