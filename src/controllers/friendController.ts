@@ -130,7 +130,7 @@ export const searchFriends = async (req: Request, res: Response, next: NextFunct
       throw new AppError('GENERAL_001', '검색할 닉네임을 입력해주세요.');
     }
 
-    const users = await friendService.searchUserByNickname(nickname);
+    const users = await friendService.searchUserByNickname(nickname, userId);
     sendSuccess(res, users);
   } catch (error) {
     next(error);
