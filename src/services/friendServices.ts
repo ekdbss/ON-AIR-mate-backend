@@ -348,7 +348,7 @@ export const inviteFriendToRoom = async (
     where: { roomId },
     include: {
       participants: {
-        where: { userId, leftAt: null },
+        where: { userId, left_at: null },
       },
     },
   });
@@ -372,7 +372,7 @@ export const inviteFriendToRoom = async (
     where: {
       roomId,
       userId: friendId,
-      leftAt: null,
+      left_at: null,
     },
   });
 
@@ -384,7 +384,7 @@ export const inviteFriendToRoom = async (
   const currentParticipants = await prisma.roomParticipant.count({
     where: {
       roomId,
-      leftAt: null,
+      left_at: null,
     },
   });
 
