@@ -111,6 +111,15 @@ export const createRoomFromBookmark = async (
   isPublic: boolean,
   startFrom: 'BOOKMARK' | 'BEGINNING',
 ) => {
+  // 입력 값 검증
+  if (!roomTitle?.trim()) {
+    throw new Error('방 제목은 필수입니다.');
+  }
+
+  if (maxParticipants !== 8 && maxParticipants !== 15 && maxParticipants !== 30) {
+    throw new Error('최대 참가자 수는 8, 15, 30 중 하나여야 합니다.');
+  }
+
   const bookmark = await prisma.bookmark.findUnique({
     where: { bookmarkId },
     include: {
