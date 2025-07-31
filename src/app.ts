@@ -8,12 +8,6 @@ import { requireAuth } from './middleware/authMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
 import youtubeRoutes from './routes/youtubeRoute.js';
 import userRoutes from './routes/userRoutes.js';
-<<<<<<< HEAD
-import friendRoutes from './routes/friendRoutes.js';
-import bookmarkRoutes from './routes/bookmarkRoute.js';
-import userRecommendationRoute from './routes/userRecommendationRoute.js';
-=======
->>>>>>> 7de86c8 (feat: 특정 방의 상세정보 조회 api 구현 (#68))
 import swaggerUi from 'swagger-ui-express';
 import { specs } from './swagger.js';
 import { createServer } from 'http';
