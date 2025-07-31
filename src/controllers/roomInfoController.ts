@@ -17,7 +17,6 @@ const getRoomInfo = async (req: Request, res: Response, next: NextFunction) => {
 
     sendSuccess(res, roomInfo);
   } catch (error) {
-    console.error('🔥 에러 발생:', error);
     next(error);
   }
 };
