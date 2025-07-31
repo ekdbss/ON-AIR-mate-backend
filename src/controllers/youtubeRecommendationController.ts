@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { sendSuccess } from '../utils/response.js';
 import AppError from '../middleware/errors/AppError.js';
-import * as youtubeService from '../services/recommendationService.js';
+import * as youtubeService from '../services/youtubeRecommendationService.js';
 
 export const recommendVideos = async (req: Request, res: Response, next: NextFunction) => {
   const keyword = req.query.keyword as string;
