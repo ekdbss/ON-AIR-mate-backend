@@ -6,8 +6,10 @@ import { sendError } from '../../utils/response.js';
 const errorHandler = (err: Error, req: Request, res: Response, _next: NextFunction) => {
   void _next;
 
-  if (err instanceof AppError) {
-    return sendError(res, err.message, err.statusCode);
+  // 개발 환경에서는 전체 에러 스택 출력
+  if (process.env.NODE_ENV === 'development') {
+    console.error('Error Stack:', err.stack);
+    console.error('Error Details:', err);
   }
 
   // AppError 인스턴스인 경우
