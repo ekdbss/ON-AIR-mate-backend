@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { RoomInfoResponseDto } from '../dtos/roomInfoDto.js';
+import { formatISO8601Duration } from '../utils/formatters.js';
 import AppError from '../middleware/errors/AppError.js';
 
 const prisma = new PrismaClient();
@@ -52,7 +53,7 @@ const getRoomInfoById = async (roomId: number): Promise<RoomInfoResponseDto> => 
     videoId: room.video.videoId,
     videoTitle: room.video.title,
     videoThumbnail: room.video.thumbnail ?? '',
-    duration: room.video.duration ?? 'PT0S',
+    duration: formatISO8601Duration(room.video.duration ?? 'PT0S'),
 
     hostNickname: room.host.nickname,
     hostProfileImage: room.host.profileImage || '',
