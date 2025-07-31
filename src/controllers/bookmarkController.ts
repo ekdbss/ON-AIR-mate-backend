@@ -52,8 +52,17 @@ export const getBookmarks = async (req: Request, res: Response, next: NextFuncti
       return sendError(res, '유저 정보가 없습니다.', 401);
     }
 
+    let parsedCollectionId: number | undefined;
+    if (collectionId) {
+      const num = Number(collectionId);
+      if (isNaN(num)) {
+        return sendError(res, '유효하지 않은 컬렉션 ID입니다.', 400);
+      }
+      parsedCollectionId = num;
+    }
+
     const result = await bookmarkService.getBookmarks(userId, {
-      collectionId: collectionId ? Number(collectionId) : undefined,
+      collectionId: parsedCollectionId,
       uncategorized: uncategorized === 'true',
     });
 
@@ -71,6 +80,10 @@ export const deleteBookmark = async (req: Request, res: Response, next: NextFunc
   try {
     const userId = req.user?.userId;
     const bookmarkId = Number(req.params.bookmarkId);
+
+    if (isNaN(bookmarkId)) {
+      return sendError(res, '유효하지 않은 북마크 ID입니다.', 400);
+    }
 
     if (userId === undefined) {
       return sendError(res, '유저 정보가 없습니다.', 401);
@@ -100,6 +113,18 @@ export const moveBookmarkToCollection = async (req: Request, res: Response, next
       return sendError(res, '유저 정보가 없습니다.', 401);
     }
 
+    if (isNaN(bookmarkId)) {
+      return sendError(res, '유효하지 않은 북마크 ID입니다.', 400);
+    }
+
+    if (
+      collectionId !== null &&
+      collectionId !== undefined &&
+      (typeof collectionId !== 'number' || isNaN(collectionId))
+    ) {
+      return sendError(res, '유효하지 않은 컬렉션 ID입니다.', 400);
+    }
+
     await bookmarkService.moveBookmarkToCollection(userId, bookmarkId, collectionId);
 
     sendSuccess(res, { message: '북마크가 이동되었습니다.' });
@@ -116,23 +141,40 @@ export const createRoomFromBookmark = async (req: Request, res: Response, next: 
   try {
     const userId = req.user?.userId;
     const bookmarkId = Number(req.params.bookmarkId);
-    const { videoId, roomTitle, maxParticipants, isPrivate } = req.body;
+    const { roomTitle, maxParticipants, isPublic, startFrom } = req.body;
 
     if (userId === undefined) {
       return sendError(res, '유저 정보가 없습니다.', 401);
     }
 
+    if (isNaN(bookmarkId)) {
+      return sendError(res, '유효하지 않은 북마크 ID입니다.', 400);
+    }
+
+    if (!roomTitle || typeof roomTitle !== 'string' || roomTitle.trim().length === 0) {
+      return sendError(res, '방 제목이 필요합니다.', 400);
+    }
+
+    if (typeof maxParticipants !== 'number' || ![8, 15, 30].includes(maxParticipants)) {
+      return sendError(res, '최대 참가자 수는 8, 15, 30 중 하나여야 합니다.', 400);
+    }
+
+    if (typeof isPublic !== 'boolean') {
+      return sendError(res, '방 공개 여부는 불린 타입이어야 합니다.', 400);
+    }
+
     const newRoom = await bookmarkService.createRoomFromBookmark(
       userId,
       bookmarkId,
-      videoId,
       roomTitle,
       maxParticipants,
-      isPrivate,
+      isPublic,
+      startFrom ?? 'BOOKMARK',
     );
 
     sendSuccess(res, {
       roomId: newRoom.roomId,
+      thumbnail: newRoom.thumbnail,
       message: '방이 생성되었습니다.',
     });
   } catch (err) {
