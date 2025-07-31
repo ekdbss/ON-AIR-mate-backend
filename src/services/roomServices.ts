@@ -70,7 +70,7 @@ export const outRoom = async (roomId: number, userId: number) => {
       },
     },
     data: {
-      leftAt: new Date(),
+      left_at: new Date(),
     },
   });
   return { message: '방에서 퇴장했습니다.' };
@@ -83,7 +83,7 @@ export const outRoom = async (roomId: number, userId: number) => {
 //참가자 목록 조회
 export const getParticipants = async (roomId: number) => {
   const participants = await prisma.roomParticipant.findMany({
-    where: { roomId, leftAt: null },
+    where: { roomId, left_at: null },
   });
 
   const result = await Promise.all(

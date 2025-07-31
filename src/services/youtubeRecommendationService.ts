@@ -6,7 +6,7 @@ import {
   YouTubeVideoDetailsResponse,
   YouTubeVideoDetailsResult,
   YouTubeSearchResult,
-} from '../dtos/recommendationDto.js';
+} from '../dtos/youtubeRecommendationDto.js';
 
 const YOUTUBE_SEARCH_API_URL = 'https://www.googleapis.com/youtube/v3/search';
 const YOUTUBE_VIDEOS_API_URL = 'https://www.googleapis.com/youtube/v3/videos';
