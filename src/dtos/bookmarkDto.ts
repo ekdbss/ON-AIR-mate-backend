@@ -11,4 +11,5 @@ export interface CreateRoomFromBookmarkDto {
   roomTitle: string;
   maxParticipants: number;
   isPublic: boolean;
+  startFrom: 'BOOKMARK' | 'BEGINNING';
 }

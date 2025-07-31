@@ -129,6 +129,10 @@ export const createRoomFromBookmark = async (
   const videoThumbnail = bookmark.room?.video?.thumbnail ?? '';
   const startTime = startFrom === 'BOOKMARK' ? (bookmark?.timeline ?? 0) : 0;
 
+  if (!bookmark.room?.videoId) {
+    throw new Error('북마크에 연결된 비디오를 찾을 수 없습니다.');
+  }
+
   const newRoom = await prisma.room.create({
     data: {
       roomName: roomTitle,
