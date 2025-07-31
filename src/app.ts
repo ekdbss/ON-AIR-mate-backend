@@ -12,6 +12,7 @@ import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import friendRoutes from './routes/friendRoutes.js';
 import bookmarkRoutes from './routes/bookmarkRoute.js';
+import userRecommendationRoute from './routes/userRecommendationRoute.js';
 import swaggerUi from 'swagger-ui-express';
 import { specs } from './swagger.js';
 import { createServer } from 'http';
@@ -150,6 +151,7 @@ app.use('/api/youtube', youtubeRoutes);
 app.use('/api/youtube', youtubeSearchRouter);
 app.use('/api/youtube/videos', youtubeDetailRouter);
 app.use('/api/bookmarks', bookmarkRoutes);
+app.use('/api/recommendations', userRecommendationRoute);
 
 // 404 에러 핸들링
 app.use((req: Request, res: Response, next: NextFunction) => {
