@@ -16,6 +16,9 @@ import { ActiveRoomService } from '../services/activeRoomsService.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
+const activeRoomService = new ActiveRoomService();
+const activeRoomController = new ActiveRoomController(activeRoomService);
+
 /**
  * @swagger
  * /api/rooms:
@@ -94,8 +97,6 @@ const router = express.Router();
  */
 router.post('/', requireAuth, createRoom);
 
-const activeRoomService = new ActiveRoomService();
-const activeRoomController = new ActiveRoomController(activeRoomService);
 /**
  * @swagger
  * /api/rooms:
