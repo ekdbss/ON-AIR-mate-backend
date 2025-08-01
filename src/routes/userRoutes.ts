@@ -3,6 +3,7 @@ import {
   getProfile,
   updateProfile,
   getNotificationSettings,
+  uploadProfileImageHandler,
   updateNotificationSettings,
   getParticipatedRooms,
   getSearchHistory,
@@ -64,6 +65,53 @@ router.get('/test', (req, res) => {
  *                   format: date-time
  *                   example: 2025-01-27T12:00:00Z
  */
+
+/**
+ * @swagger
+ * /api/users/profile/image:
+ *   post:
+ *     summary: 프로필 이미지 업로드
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               profileImage:
+ *                 type: string
+ *                 format: binary
+ *                 description: 업로드할 이미지 파일 (최대 5MB, jpeg/png/gif/webp)
+ *     responses:
+ *       200:
+ *         description: 이미지 업로드 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       example: 프로필 이미지가 업로드되었습니다.
+ *                     profileImage:
+ *                       type: string
+ *                       example: https://onairmate-profile-images-seoul.s3.ap-northeast-2.amazonaws.com/profile-images/123/...
+ *       400:
+ *         description: 잘못된 요청
+ *       401:
+ *         description: 인증 실패
+ */
+router.post('/profile/image', requireAuth, uploadProfileImageHandler);
+
 router.get('/profile', requireAuth, getProfile);
 
 /**

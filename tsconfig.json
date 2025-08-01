@@ -15,13 +15,15 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "noEmit": false
+    "noEmit": false,
+    "typeRoots": ["./node_modules/@types", "./src"],
+    "types": ["node", "express"]
   },
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node",
     "transpileOnly": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "src/global.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
