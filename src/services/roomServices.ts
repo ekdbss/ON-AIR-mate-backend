@@ -131,14 +131,6 @@ export const addParticipant = async (roomId: number, participant: Participant) =
     },
   });
 
-  //방에 현재 참여자 수 증가
-  await prisma.room.update({
-    where: { roomId },
-    data: {
-      currentParticipants: { increment: 1 },
-    },
-  });
-
   return room;
 };
 
@@ -154,12 +146,6 @@ export const removeParticipant = async (roomId: number, userId: number) => {
     prisma.roomParticipant.delete({
       where: {
         unique_participant: { roomId, userId },
-      },
-    }),
-    prisma.room.update({
-      where: { roomId },
-      data: {
-        currentParticipants: { decrement: 1 },
       },
     }),
   ]);
