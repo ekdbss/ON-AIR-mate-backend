@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { roomInfoController } from '../controllers/roomInfoController.js';
-import * as roomSettingController from '../controllers/roomSettingController.js';
+import { getRoomSettings, updateRoomSettings } from '../controllers/roomSettingController.js';
 import {
   createRoom,
   joinRoom,
@@ -444,6 +444,62 @@ router.get('/:roomId', requireAuth, roomInfoController.getRoomInfo);
 /**
  * @swagger
  * /api/rooms/{roomId}/settings:
+ *   get:
+ *     summary: 방 설정 조회
+ *     description: 특정 방의 설정된 기존 설정 값을 가져옵니다.
+ *     tags:
+ *       - Room
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 설정을 조회할 방의 ID
+ *     responses:
+ *       200:
+ *         description: 방 설정 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     maxParticipants:
+ *                       type: integer
+ *                       example: 15
+ *                     isPrivate:
+ *                       type: boolean
+ *                       example: true
+ *                     autoArchiving:
+ *                       type: boolean
+ *                       example: false
+ *                     invitePermission:
+ *                       type: string
+ *                       enum: [all, host]
+ *                       example: "all"
+ *                 error:
+ *                   type: object
+ *                   nullable: true
+ *       401:
+ *         description: 인증 실패
+ *       403:
+ *         description: 방에 참여하지 않은 사용자
+ *       404:
+ *         description: 방을 찾을 수 없음
+ */
+router.get('/:roomId/settings', requireAuth, getRoomSettings);
+
+/**
+ * @swagger
+ * /api/rooms/{roomId}/settings:
  *   put:
  *     summary: 방 설정 수정
  *     description: 방장이 특정 방의 설정을 수정합니다.
@@ -501,6 +557,6 @@ router.get('/:roomId', requireAuth, roomInfoController.getRoomInfo);
  *       404:
  *         description: 방을 찾을 수 없음
  */
-router.put('/:roomId/settings', requireAuth, roomSettingController.updateRoomSettings);
+router.put('/:roomId/settings', requireAuth, updateRoomSettings);
 
 export default router;

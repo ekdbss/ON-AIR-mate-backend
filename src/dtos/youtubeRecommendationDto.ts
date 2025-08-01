@@ -41,5 +41,4 @@ export interface RecommendedVideoDto {
   viewCount: number;
   uploadTime: string;
   duration: string;
-  durationFormatted: string;
 }
