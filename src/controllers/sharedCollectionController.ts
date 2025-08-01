@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { SharedCollectionService } from '../services/sharedCollectionService.js';
-import { SharedCollectionActionDto } from '../dtos/sharedCollectionDto.js';
 
 const service = new SharedCollectionService();
 
@@ -20,6 +19,4 @@ export const getReceivedCollections = async (req: Request, res: Response): Promi
     const errorMessage = err instanceof Error ? err.message : 'Internal Server Error';
     res.status(500).json({ success: false, message: errorMessage });
   }
-};
-
 };
