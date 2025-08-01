@@ -35,6 +35,48 @@ const options: swaggerJsdoc.Options = {
         },
       },
       schemas: {
+        ActiveRoom: {
+          type: 'object',
+          properties: {
+            roomId: { type: 'number', example: 123 },
+            roomTitle: { type: 'string', example: '같이 명작 영화 봐요' },
+            videoTitle: { type: 'string', example: '쇼생크 탈출' },
+            videoThumbnail: { type: 'string', example: 'https://thumbnail.url/image.jpg' },
+            hostNickname: { type: 'string', example: '영화광' },
+            hostProfileImage: { type: 'string', example: 'https://profile.url/image.png' },
+            hostPopularity: { type: 'number', example: 95 },
+            currentParticipants: { type: 'number', example: 5 },
+            maxParticipants: { type: 'number', example: 8 },
+            duration: { type: 'string', example: '01:23:45' },
+            isPrivate: { type: 'boolean', example: false },
+          },
+        },
+        ActiveRoomsData: {
+          type: 'object',
+          properties: {
+            continueWatching: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/ActiveRoom' },
+            },
+            onAirRooms: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/ActiveRoom' },
+            },
+          },
+        },
+        ActiveRoomsResponse: {
+          allOf: [
+            { $ref: '#/components/schemas/SuccessResponse' },
+            {
+              type: 'object',
+              properties: {
+                data: {
+                  $ref: '#/components/schemas/ActiveRoomsData',
+                },
+              },
+            },
+          ],
+        },
         RecommendedVideo: {
           type: 'object',
           properties: {
