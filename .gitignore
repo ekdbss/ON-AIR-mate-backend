@@ -149,3 +149,9 @@ bower_components/
 # cors-config.json
 on-air-mate-back@*
 prettier
+test-upload.html
+test.*
+*.mjs
+test-upload.html
+test.*
+*.mjs
