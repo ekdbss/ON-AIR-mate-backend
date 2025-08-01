@@ -1,8 +1,5 @@
 import { prisma } from '../lib/prisma.js';
-import {
-  SharedCollectionActionDto,
-  SharedCollectionResponseDto,
-} from '../dtos/sharedCollectionDto.js';
+import { SharedCollectionResponseDto } from '../dtos/sharedCollectionDto.js';
 
 export class SharedCollectionService {
   // 공유받은 컬렉션 목록 조회
@@ -31,5 +28,4 @@ export class SharedCollectionService {
       sharedAt: sc.createdAt,
     }));
   }
-
 }
