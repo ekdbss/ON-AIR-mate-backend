@@ -75,6 +75,13 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
     // 닉네임 중복 확인
     const checkNickname = await findUserByNickname(nickname);
     if (checkNickname) {
+      const nicknameRegex = /^[가-힣a-zA-Z0-9_-]{3,10}$/;
+      if (!nicknameRegex.test(nickname)) {
+        throw new AppError(
+          'GENERAL_001',
+          '닉네임은 3~10자의 한글, 영문, 숫자, -, _만 사용 가능합니다.',
+        );
+      }
       throw new AppError('AUTH_002'); // '사용할 수 없는 닉네임입니다.'
     }
 

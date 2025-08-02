@@ -98,7 +98,6 @@ model Room {
   maxParticipants     Int               @default(6) @map("max_participants")
   currentParticipants Int               @default(1) @map("current_participants")
   popularity          Int               @default(0)
-  videoId             String?           @map("video_id") @db.VarChar(20)
   autoArchive         Boolean           @default(true) @map("auto_archive")
   inviteAuth          InviteAuth        @default(all) @map("invite_auth")
   watched30s          Boolean           @default(false) @map("watched_30s")
@@ -106,11 +105,11 @@ model Room {
   startTime           Int               @default(0)
   createdAt           DateTime          @default(now()) @map("created_at")
   updatedAt           DateTime          @updatedAt @map("updated_at")
+  videoId             String            @map("video_id") @db.VarChar(20)
   bookmarks           Bookmark[]
   messages            RoomMessage[]
   participants        RoomParticipant[]
   host                User              @relation("HostUser", fields: [hostId], references: [userId], onDelete: Cascade)
-  video               YoutubeVideo?     @relation("RoomVideo", fields: [videoId], references: [videoId])
 
   @@index([hostId], map: "rooms_host_id_fkey")
   @@index([videoId], map: "rooms_video_id_fkey")
@@ -122,8 +121,8 @@ model RoomParticipant {
   roomId        Int             @map("room_id")
   userId        Int             @map("user_id")
   role          ParticipantRole @default(participant)
-  leftAt        DateTime?       @map("left_at")
   joinedAt      DateTime        @default(now()) @map("joined_at")
+  left_at       DateTime?
   lastJoinedAt  DateTime        @default(now()) @map("last_joined_at")
   totalStayTime Int             @default(0) @map("total_stay_time")
   room          Room            @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
@@ -183,17 +182,17 @@ model Bookmark {
   bookmarkId         Int         @id @default(autoincrement()) @map("bookmark_id")
   userId             Int         @map("user_id")
   roomId             Int         @map("room_id")
-  collectionId       Int?        @map("collection_id")
   title              String?     @db.VarChar(50)
   content            String?     @db.Text
   timeline           Int?        @default(0)
   originalBookmarkId Int?        @map("original_bookmark_id")
   createdAt          DateTime    @default(now()) @map("created_at")
+  collectionId       Int?        @map("collection_id")
+  collection         Collection? @relation(fields: [collectionId], references: [collectionId])
   originalBookmark   Bookmark?   @relation("BookmarkCopy", fields: [originalBookmarkId], references: [bookmarkId])
   copiedBookmarks    Bookmark[]  @relation("BookmarkCopy")
   room               Room        @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
   user               User        @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  collection         Collection? @relation(fields: [collectionId], references: [collectionId], onDelete: SetNull)
 
   @@index([originalBookmarkId], map: "bookmarks_original_bookmark_id_fkey")
   @@index([roomId], map: "bookmarks_room_id_fkey")
@@ -211,14 +210,14 @@ model Collection {
   bookmarkCount        Int                  @default(0) @map("bookmark_count")
   isLiked              Boolean              @default(false) @map("is_liked")
   originalCollectionId Int?                 @map("original_collection_id")
-  coverImage           String?              @map("cover_image") @db.VarChar(500)
   createdAt            DateTime             @default(now()) @map("created_at")
+  coverImage           String?              @map("cover_image") @db.VarChar(500)
   updatedAt            DateTime             @updatedAt @map("updated_at")
+  bookmarks            Bookmark[]
   originalCollection   Collection?          @relation("CollectionCopy", fields: [originalCollectionId], references: [collectionId])
   copiedCollections    Collection[]         @relation("CollectionCopy")
   user                 User                 @relation(fields: [userId], references: [userId], onDelete: Cascade)
   sharedCollections    SharedCollection[]
-  bookmarks            Bookmark[]
 
   @@index([originalCollectionId], map: "collections_original_collection_id_fkey")
   @@index([userId], map: "collections_user_id_fkey")
@@ -293,7 +292,6 @@ model YoutubeVideo {
   duration    String?   @db.VarChar(20)
   uploadedAt  DateTime? @map("uploaded_at")
   createdAt   DateTime  @default(now()) @map("created_at")
-  videoRooms  Room[]    @relation("RoomVideo")
 
   @@map("youtube_videos")
 }
