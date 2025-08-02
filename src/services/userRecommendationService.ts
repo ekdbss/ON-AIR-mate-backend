@@ -22,14 +22,24 @@ export class RecommendationService {
       throw new Error('이미 오늘 추천을 보냈습니다.');
     }
 
-    // 추천 생성
-    await prisma.dailyRecommendation.create({
-      data: {
-        recommenderId: userId,
-        recommendedUserId: dto.targetUserId,
-        recommendationDate: today,
-      },
-    });
+    // 추천 생성 + 인기도 증가 (트랜잭션 처리)
+    await prisma.$transaction([
+      prisma.dailyRecommendation.create({
+        data: {
+          recommenderId: userId,
+          recommendedUserId: dto.targetUserId,
+          recommendationDate: today,
+        },
+      }),
+      prisma.user.update({
+        where: { userId: dto.targetUserId },
+        data: {
+          popularity: {
+            increment: 1,
+          },
+        },
+      }),
+    ]);
 
     return {
       success: true,
