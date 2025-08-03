@@ -15,9 +15,7 @@ import {
   AISummaryFeedbackData,
 } from '../dtos/aiSummaryDto.js';
 
-if (!process.env.BEDROCK_MODEL_ID) {
-  throw new Error('BEDROCK_MODEL_ID 환경변수가 필요합니다');
-}
+const BEDROCK_MODEL_ID = 'anthropic.claude-3-5-sonnet-20240620-v1:0';
 
 const bedrockClient = new BedrockRuntimeClient({
   region: process.env.AWS_REGION || 'ap-northeast-2',
