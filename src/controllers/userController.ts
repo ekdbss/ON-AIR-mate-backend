@@ -4,6 +4,7 @@ import * as userService from '../services/userServices.js';
 import AppError from '../middleware/errors/AppError.js';
 import { uploadProfileImage, handleUploadError } from '../middleware/uploadMiddleware.js';
 import { S3_BUCKET_NAME } from '../config/s3Config.js';
+import { deleteS3Object } from '../utils/s3utils.js';
 
 // 프로필 정보 조회
 export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
@@ -37,11 +38,20 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
 
     // 이미지 URL이 제공된 경우 검증 (선택사항)
     if (profileImage) {
-      // S3 URL 형식 검증
-      const validS3Pattern = new RegExp(
-        `https://${S3_BUCKET_NAME}\\.s3\\.[a-z0-9-]+\\.amazonaws\\.com/.+`,
+      // S3 URL 형식 검증 - 버킷 이름의 특수문자를 이스케이프
+      const escapedBucketName = S3_BUCKET_NAME.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+      // Virtual-hosted-style URL 검증
+      const virtualHostedStyle = new RegExp(
+        `^https://${escapedBucketName}\\.s3\\.[a-z0-9-]+\\.amazonaws\\.com/.+$`,
       );
-      if (!validS3Pattern.test(profileImage)) {
+
+      // Path-style URL 검증
+      const pathStyle = new RegExp(
+        `^https://s3\\.[a-z0-9-]+\\.amazonaws\\.com/${escapedBucketName}/.+$`,
+      );
+
+      if (!virtualHostedStyle.test(profileImage) && !pathStyle.test(profileImage)) {
         throw new AppError('GENERAL_001', '유효하지 않은 이미지 URL입니다.');
       }
     }
@@ -75,10 +85,22 @@ export const uploadProfileImageHandler = [
       // S3에 업로드된 파일의 URL
       const profileImageUrl = file.location;
 
-      // DB에 URL 저장
-      await userService.updateUserProfile(userId, {
-        profileImage: profileImageUrl,
-      });
+      // DB에 URL 저장 - 실패시 S3 파일 롤백
+      try {
+        await userService.updateUserProfile(userId, {
+          profileImage: profileImageUrl,
+        });
+      } catch (dbError) {
+        // S3에서 파일 삭제 시도
+        try {
+          await deleteS3Object(file.location);
+          console.log(`DB 업데이트 실패로 S3 파일 삭제: ${file.key}`);
+        } catch (s3Error) {
+          console.error('S3 파일 삭제 실패:', s3Error);
+          // 삭제 실패해도 원래 에러를 전달
+        }
+        throw dbError; // DB 에러를 다시 던짐
+      }
 
       sendSuccess(res, {
         message: '프로필 이미지가 업로드되었습니다.',
@@ -114,26 +136,13 @@ export const updateNotificationSettings = async (
 ) => {
   try {
     const userId = req.user?.userId;
-    const { serviceNotification, advertisementNotification, nightNotification } = req.body;
+    const settings = req.body;
 
     if (!userId) {
       throw new AppError('AUTH_007');
     }
 
-    if (
-      serviceNotification === undefined &&
-      advertisementNotification === undefined &&
-      nightNotification === undefined
-    ) {
-      throw new AppError('USER_004');
-    }
-
-    await userService.updateNotificationSettings(userId, {
-      serviceNotification,
-      advertisementNotification,
-      nightNotification,
-    });
-
+    await userService.updateNotificationSettings(userId, settings);
     sendSuccess(res, { message: '알림 설정이 수정되었습니다.' });
   } catch (error) {
     next(error);
@@ -182,8 +191,8 @@ export const sendFeedback = async (req: Request, res: Response, next: NextFuncti
       throw new AppError('AUTH_007');
     }
 
-    if (!content || content.trim().length === 0) {
-      throw new AppError('USER_005');
+    if (!content) {
+      throw new AppError('GENERAL_001', '의견 내용을 입력해주세요.');
     }
 
     await userService.sendUserFeedback(userId, content);
