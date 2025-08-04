@@ -26,6 +26,7 @@ interface SearchUser {
   nickname: string;
   profileImage: string | null;
   popularity: number;
+  requestStatus: 'none' | 'pending' | 'accepted' | 'rejected';
 }
 
 interface FriendLounge {
@@ -267,7 +268,10 @@ export const deleteFriend = async (userId: number, friendId: number): Promise<vo
 /**
  * 닉네임으로 사용자 검색
  */
-export const searchUserByNickname = async (nickname: string): Promise<SearchUser[]> => {
+export const searchUserByNickname = async (
+  nickname: string,
+  currentUserId: number,
+): Promise<SearchUser[]> => {
   const users = await prisma.user.findMany({
     where: {
       nickname: nickname, // 완전 일치
@@ -280,7 +284,41 @@ export const searchUserByNickname = async (nickname: string): Promise<SearchUser
     },
   });
 
-  return users;
+  // 검색 결과가 없으면 바로 반환
+  if (users.length === 0) {
+    return [];
+  }
+
+  // 모든 사용자와의 friendship 관계를 한 번에 조회
+  const userIds = users.map(user => user.userId);
+  const friendships = await prisma.friendship.findMany({
+    where: {
+      OR: [
+        { requestedBy: currentUserId, requestedTo: { in: userIds } },
+        { requestedBy: { in: userIds }, requestedTo: currentUserId },
+      ],
+    },
+  });
+
+  // friendship 맵 생성 (userId -> status)
+  const friendshipMap = new Map<number, 'none' | 'pending' | 'accepted' | 'rejected'>();
+  friendships.forEach(friendship => {
+    const otherUserId =
+      friendship.requestedBy === currentUserId ? friendship.requestedTo : friendship.requestedBy;
+    friendshipMap.set(otherUserId, friendship.status as 'pending' | 'accepted' | 'rejected');
+  });
+
+  // 사용자 정보와 친구 관계 상태 결합
+  const usersWithRequestStatus: SearchUser[] = users.map(user => ({
+    ...user,
+    requestStatus: (friendshipMap.get(user.userId) || 'none') as
+      | 'none'
+      | 'pending'
+      | 'accepted'
+      | 'rejected',
+  }));
+
+  return usersWithRequestStatus;
 };
 
 /**
@@ -310,7 +348,7 @@ export const inviteFriendToRoom = async (
     where: { roomId },
     include: {
       participants: {
-        where: { userId, leftAt: null },
+        where: { userId, left_at: null },
       },
     },
   });
@@ -334,7 +372,7 @@ export const inviteFriendToRoom = async (
     where: {
       roomId,
       userId: friendId,
-      leftAt: null,
+      left_at: null,
     },
   });
 
@@ -346,7 +384,7 @@ export const inviteFriendToRoom = async (
   const currentParticipants = await prisma.roomParticipant.count({
     where: {
       roomId,
-      leftAt: null,
+      left_at: null,
     },
   });
 

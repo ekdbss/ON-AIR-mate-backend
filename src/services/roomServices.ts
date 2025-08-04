@@ -33,9 +33,7 @@ export const createRoom = async (data: createNewRoom) => {
       roomName: data.roomName,
       isPublic: data.isPublic ?? true,
       maxParticipants: data.maxParticipants ?? 6,
-      video: {
-        connect: { videoId: video.videoId },
-      },
+      videoId: video.videoId,
       host: {
         connect: { userId: data.hostId }, // ← 이 부분 추가
       },
@@ -70,7 +68,7 @@ export const outRoom = async (roomId: number, userId: number) => {
       },
     },
     data: {
-      leftAt: new Date(),
+      left_at: new Date(),
     },
   });
   return { message: '방에서 퇴장했습니다.' };
@@ -83,7 +81,7 @@ export const outRoom = async (roomId: number, userId: number) => {
 //참가자 목록 조회
 export const getParticipants = async (roomId: number) => {
   const participants = await prisma.roomParticipant.findMany({
-    where: { roomId, leftAt: null },
+    where: { roomId, left_at: null },
   });
 
   const result = await Promise.all(
@@ -133,14 +131,6 @@ export const addParticipant = async (roomId: number, participant: Participant) =
     },
   });
 
-  //방에 현재 참여자 수 증가
-  await prisma.room.update({
-    where: { roomId },
-    data: {
-      currentParticipants: { increment: 1 },
-    },
-  });
-
   return room;
 };
 
@@ -156,12 +146,6 @@ export const removeParticipant = async (roomId: number, userId: number) => {
     prisma.roomParticipant.delete({
       where: {
         unique_participant: { roomId, userId },
-      },
-    }),
-    prisma.room.update({
-      where: { roomId },
-      data: {
-        currentParticipants: { decrement: 1 },
       },
     }),
   ]);

@@ -6,7 +6,7 @@ import {
   YouTubeVideoDetailsResponse,
   YouTubeVideoDetailsResult,
   YouTubeSearchResult,
-} from '../dtos/recommendationDto.js';
+} from '../dtos/youtubeRecommendationDto.js';
 
 const YOUTUBE_SEARCH_API_URL = 'https://www.googleapis.com/youtube/v3/search';
 const YOUTUBE_VIDEOS_API_URL = 'https://www.googleapis.com/youtube/v3/videos';
@@ -61,8 +61,7 @@ export const getRecommendedVideos = async (
           channelName: item.snippet.channelTitle || 'Unknown Channel',
           viewCount: details ? parseInt(details.statistics.viewCount, 10) : 0,
           uploadTime: item.snippet.publishedAt,
-          duration: isoDuration, // 원본 ISO 8601 형식
-          durationFormatted: formatISO8601Duration(isoDuration), // "mm:ss" 형식으로 변환된 값
+          duration: formatISO8601Duration(isoDuration),
         };
       },
     );
