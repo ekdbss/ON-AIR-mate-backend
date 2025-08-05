@@ -84,7 +84,7 @@ router.get('/test', (req, res) => {
  *               profileImage:
  *                 type: string
  *                 format: binary
- *                 description: 업로드할 이미지 파일 (최대 5MB, jpeg/png/gif/webp)
+ *                 description: 업로드할 이미지 파일 (최대 50MB, jpeg/png/gif/webp..)
  *     responses:
  *       200:
  *         description: 이미지 업로드 성공
