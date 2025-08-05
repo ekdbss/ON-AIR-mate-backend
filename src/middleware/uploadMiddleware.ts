@@ -27,11 +27,11 @@ const fileFilter = (req: AuthRequest, file: Express.Multer.File, cb: multer.File
 
   const allowedMimeTypes = [
     'image/jpeg',
-    'image/jpg', // 추가
+    'image/jpg',
     'image/png',
     'image/gif',
     'image/webp',
-    'image/svg+xml', // SVG 추가 (선택사항)
+    'image/svg+xml',
   ];
 
   if (allowedMimeTypes.includes(file.mimetype)) {
@@ -73,7 +73,7 @@ export const uploadProfileImage = multer({
   storage: s3Storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 50 * 1024 * 1024, // 5MB 제한
+    fileSize: 50 * 1024 * 1024,
   },
 }).single('profileImage');
 
