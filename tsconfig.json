@@ -17,7 +17,7 @@
     "sourceMap": true,
     "noEmit": false,
     "typeRoots": ["./node_modules/@types", "./src"],
-    "types": ["node", "express"]
+    "types": ["node", "express", "multer", "multer-s3"]
   },
   "ts-node": {
     "esm": true,

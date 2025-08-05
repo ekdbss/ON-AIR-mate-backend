@@ -34,9 +34,7 @@ export const createRoom = async (data: createNewRoom) => {
       isPublic: data.isPublic ?? true,
       maxParticipants: data.maxParticipants ?? 6,
       videoId: video.videoId,
-      host: {
-        connect: { userId: data.hostId }, // ← 이 부분 추가
-      },
+      hostId: data.hostId,
     },
   });
 
