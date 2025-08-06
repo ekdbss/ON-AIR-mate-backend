@@ -53,6 +53,7 @@ const corsOptions = {
       //'https://onairmate.vercel.app', // 예시 도메인
       'http://localhost:3000', // 로컬 개발용
       'http://localhost:3001', // 로컬 개발용
+      'https://29d0611ca9f9.ngrok-free.app', // ✅ ngrok 주소
     ];
     console.log('배포 주소', address);
     console.log('연결 origin:', origin);
