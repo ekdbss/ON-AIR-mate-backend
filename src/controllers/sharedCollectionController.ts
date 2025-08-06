@@ -21,6 +21,7 @@ export const getReceivedCollections = async (req: Request, res: Response): Promi
     res.status(500).json({ success: false, message: errorMessage });
   }
 };
+<<<<<<< HEAD
 
 // 2. 공유 컬렉션 수락/거절 처리
 export const respondToSharedCollection = async (req: Request, res: Response): Promise<void> => {
@@ -50,3 +51,5 @@ export const respondToSharedCollection = async (req: Request, res: Response): Pr
     res.status(500).json({ success: false, message: errorMessage });
   }
 };
+=======
+>>>>>>> e144817243cd7f05bcb35bd1c486c7cdfae22c0f
