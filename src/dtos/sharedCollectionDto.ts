@@ -9,3 +9,7 @@ export class SharedCollectionResponseDto {
   bookmarkCount!: number;
   sharedAt!: Date;
 }
+
+export class SharedCollectionActionDto {
+  action!: SharedCollectionAction;
+}
