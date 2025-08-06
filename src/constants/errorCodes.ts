@@ -56,6 +56,12 @@ export const ERROR_CODES = {
   GENERAL_003: { message: '리소스를 찾을 수 없습니다.', statusCode: 404 },
   GENERAL_004: { message: '서버 내부 오류가 발생했습니다.', statusCode: 500 },
   GENERAL_005: { message: '데이터베이스 오류가 발생했습니다.', statusCode: 500 },
+
+  // 파일 관련 에러 (FILE_XXX)
+  FILE_001: { message: '파일 크기가 너무 큽니다.', statusCode: 400 },
+  FILE_002: { message: '파일 업로드에 실패했습니다.', statusCode: 400 },
+  FILE_003: { message: '이미지 파일이 필요합니다.', statusCode: 400 },
+  FILE_004: { message: '지원하지 않는 파일 형식입니다.', statusCode: 400 },
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_CODES;

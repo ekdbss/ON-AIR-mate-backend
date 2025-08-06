@@ -27,8 +27,8 @@ export const VALID_SEARCH_TYPE_OPTIONS: SearchTypeOption[] = [
  * searchType 문자열이 유효한 SearchTypeOption인지 확인하는 타입 가드 함수
  * @param value - 검사할 문자열
  */
-export function isSearchTypeOption(value: any): value is SearchTypeOption {
-  return VALID_SEARCH_TYPE_OPTIONS.includes(value);
+export function isSearchTypeOption(value: unknown): value is SearchTypeOption {
+  return VALID_SEARCH_TYPE_OPTIONS.includes(value as SearchTypeOption);
 }
 
 /**

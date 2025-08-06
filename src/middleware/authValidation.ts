@@ -41,8 +41,12 @@ export const validateRegister = (req: Request, res: Response, next: NextFunction
   }
 
   // 닉네임 검증 (3~10자)
-  if (nickname.length < 3 || nickname.length > 10) {
-    throw new AppError('GENERAL_001', '닉네임은 3~10자 이내로 입력해주세요.');
+  const nicknameRegex = /^[가-힣a-zA-Z0-9_-]{3,10}$/;
+  if (!nicknameRegex.test(nickname)) {
+    throw new AppError(
+      'GENERAL_001',
+      '닉네임은 3~10자의 한글, 영문, 숫자, -, _만 사용 가능합니다.',
+    );
   }
 
   // 필수 약관 동의 검증

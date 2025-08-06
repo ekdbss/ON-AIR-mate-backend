@@ -12,6 +12,7 @@ import swaggerUi from 'swagger-ui-express';
 import { specs } from './swagger.js';
 import { createServer } from 'http';
 import { initSocketServer } from './socket/index.js';
+import aiSummaryRoutes from './routes/aiSummaryRoutes.js';
 import roomRoutes from './routes/roomRoute.js';
 import chatDirectRoutes from './routes/chatDirectRoute.js';
 dotenv.config();
@@ -137,6 +138,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/chat/direct', chatDirectRoutes);
 app.use('/api/youtube', youtubeRoutes); // youtubeRecommendationRoute와 youtubeSearchRoute 병합
+app.use('/api/ai', aiSummaryRoutes);
 
 // 404 에러 핸들링
 app.use((req: Request, res: Response, next: NextFunction) => {
