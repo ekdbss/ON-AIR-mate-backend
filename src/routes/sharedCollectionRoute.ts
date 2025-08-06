@@ -1,12 +1,8 @@
 import { Router } from 'express';
-<<<<<<< HEAD
 import {
   getReceivedCollections,
   respondToSharedCollection,
 } from '../controllers/sharedCollectionController.js';
-=======
-import { getReceivedCollections } from '../controllers/sharedCollectionController.js';
->>>>>>> e144817243cd7f05bcb35bd1c486c7cdfae22c0f
 import { requireAuth } from '../middleware/authMiddleware.js'; // 인증 미들웨어 경로에 맞게 수정 필요
 
 const router = Router();
