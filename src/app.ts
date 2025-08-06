@@ -37,6 +37,7 @@ const corsOptions = {
     origin: string | undefined,
     callback: (err: Error | null, allow?: boolean) => void,
   ) {
+    console.log('연결 origin:', origin);
     // 개발 환경에서는 모든 origin 허용
     if (process.env.NODE_ENV === 'development') {
       callback(null, true);
@@ -48,6 +49,7 @@ const corsOptions = {
     const allowedOrigins = [
       //수정1
       address,
+      'http://54.180.254.48:3000',
       'https://54.180.254.48:3000',
       //'https://your-frontend-domain.com', // 실제 프론트엔드 도메인으로 변경
       //'https://onairmate.vercel.app', // 예시 도메인
