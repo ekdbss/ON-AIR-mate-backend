@@ -1,5 +1,8 @@
 import { Router } from 'express';
-import { getReceivedCollections } from '../controllers/sharedCollectionController.js';
+import {
+  getReceivedCollections,
+  respondToSharedCollection,
+} from '../controllers/sharedCollectionController.js';
 import { requireAuth } from '../middleware/authMiddleware.js'; // 인증 미들웨어 경로에 맞게 수정 필요
 
 const router = Router();
@@ -60,5 +63,50 @@ const router = Router();
  */
 // 1. 공유받은 컬렉션 목록 조회 (GET /api/shared-collections)
 router.get('/', requireAuth, getReceivedCollections);
+
+/**
+ * @swagger
+ * /api/shared-collections/{sharedCollectionId}:
+ *   put:
+ *     summary: 공유받은 컬렉션 수락 또는 거절
+ *     description: 공유받은 컬렉션을 수락하거나 거절합니다.
+ *     tags: [SharedCollections]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sharedCollectionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 공유받은 컬렉션의 ID (share_id 필드)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               action:
+ *                 type: string
+ *                 enum: [ACCEPT, REJECT]
+ *                 example: ACCEPT
+ *     responses:
+ *       200:
+ *         description: 공유 컬렉션 수락 또는 거절 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 컬렉션을 수락했습니다.
+ */
+// 2. 공유 컬렉션 수락/거절 (PUT /api/shared-collections/:sharedCollectionId)
+router.put('/:sharedCollectionId', requireAuth, respondToSharedCollection);
 
 export default router;
