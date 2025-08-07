@@ -35,6 +35,28 @@ const options: swaggerJsdoc.Options = {
         },
       },
       schemas: {
+        CreateCollectionDto: {
+          type: 'object',
+          properties: {
+            title: {
+              type: 'string',
+              description: '컬렉션 제목',
+              example: '나의 플레이리스트',
+            },
+            description: {
+              type: 'string',
+              description: '컬렉션에 대한 간단한 소개(100자 이내)',
+              example: '신나는 노래 모음',
+            },
+            visibility: {
+              type: 'string',
+              enum: ['private', 'friends', 'public'],
+              description: '공개 범위',
+              example: 'public',
+            },
+          },
+          required: ['title', 'visibility'],
+        },
         ActiveRoom: {
           type: 'object',
           description:
