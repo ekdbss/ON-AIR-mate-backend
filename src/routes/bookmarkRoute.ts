@@ -81,6 +81,81 @@ router.post('/', requireAuth, createBookmark);
  *     responses:
  *       200:
  *         description: 북마크 목록 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     all:
+ *                       type: array
+ *                       description: 컬렉션에 속한 북마크들
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           bookmarkId:
+ *                             type: number
+ *                             example: 1
+ *                           videoId:
+ *                             type: string
+ *                             example: "abc123xyz"
+ *                           videoTitle:
+ *                             type: string
+ *                             example: "흥미로운 유튜브 영상"
+ *                           videoThumbnail:
+ *                             type: string
+ *                             example: "https://img.youtube.com/vi/abc123xyz/mqdefault.jpg"
+ *                           message:
+ *                             type: string
+ *                             example: "00:23 병살 플레이"
+ *                           timeline:
+ *                             type: number
+ *                             example: 23
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-08-07T12:34:56.000Z"
+ *                           collectionTitle:
+ *                             type: string
+ *                             nullable: true
+ *                             example: "재밌는 장면 모음"
+ *                     uncategorized:
+ *                       type: array
+ *                       description: 컬렉션에 속하지 않은 북마크들
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           bookmarkId:
+ *                             type: number
+ *                             example: 2
+ *                           videoId:
+ *                             type: string
+ *                             example: "def456uvw"
+ *                           videoTitle:
+ *                             type: string
+ *                             example: "두 번째 영상"
+ *                           videoThumbnail:
+ *                             type: string
+ *                             example: "https://img.youtube.com/vi/def456uvw/mqdefault.jpg"
+ *                           message:
+ *                             type: string
+ *                             example: "01:02 감동적인 장면"
+ *                           timeline:
+ *                             type: number
+ *                             example: 62
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-08-06T18:45:12.000Z"
+ *                           collectionTitle:
+ *                             type: string
+ *                             nullable: true
+ *                             example: null
  *       401:
  *         description: 인증 실패
  */
