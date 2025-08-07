@@ -23,21 +23,21 @@ const activeRoomController = new ActiveRoomController(activeRoomService);
  *         schema:
  *           type: string
  *           enum: [latest, popularity]
- *         description: '정렬 기준 (latest: 최신순, popularity: 방장 인기순)'
+ *           description: '정렬 기준 (latest: 최신순(기본 값), popularity: 방장 인기순)'
  *       - in: query
  *         name: searchType
  *         schema:
  *           type: string
  *           enum: [videoTitle, roomTitle, hostNickname]
- *         description: '검색 기준 (videoTitle: 영상제목, roomTitle: 방제목, hostNickname: 방장 닉네임)'
+ *           description: '검색 기준 (videoTitle: 영상 제목(기본 값), roomTitle: 방 제목, hostNickname: 방장 닉네임)'
  *       - in: query
  *         name: keyword
  *         schema:
  *           type: string
- *         description: '검색어 (searchType이 지정된 경우에만 유효)'
+ *           description: '검색어'
  *     responses:
  *       200:
- *         description: 활성화된 방 목록 조회 성공
+ *         description: '활성화된 방 목록 조회 성공'
  *         content:
  *           application/json:
  *             schema:

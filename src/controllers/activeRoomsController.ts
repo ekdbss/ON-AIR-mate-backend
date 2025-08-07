@@ -19,6 +19,7 @@ export class ActiveRoomController {
     try {
       const { searchType: rawSearchType, keyword, sortBy: rawSortBy } = req.query;
       const sortBy = (rawSortBy as SortByOption) || 'latest';
+      const searchType = (rawSearchType as GetRoomsQueryDto['searchType']) || 'videoTitle';
 
       // sortBy 값 유효성 검사
       if (!VALID_SORT_BY_OPTIONS.includes(sortBy)) {
@@ -28,19 +29,9 @@ export class ActiveRoomController {
         );
       }
 
-      // searchType 및 keyword 조합 유효성 검사
-      let searchType: GetRoomsQueryDto['searchType'];
-      if (keyword) {
-        if (!rawSearchType) {
-          throw new AppError(
-            'GENERAL_001',
-            '검색어(keyword)를 사용하려면 검색 타입(searchType)을 지정해야 합니다.',
-          );
-        }
-        if (!isSearchTypeOption(rawSearchType)) {
-          throw new AppError('GENERAL_001', `'searchType' 파라미터가 유효하지 않습니다.`);
-        }
-        searchType = rawSearchType;
+      // searchType 유효성 검사
+      if (!isSearchTypeOption(searchType)) {
+        throw new AppError('GENERAL_001', `'searchType' 파라미터가 유효하지 않습니다.`);
       }
 
       const query: GetRoomsQueryDto = {

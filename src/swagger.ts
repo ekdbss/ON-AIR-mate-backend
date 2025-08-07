@@ -37,6 +37,8 @@ const options: swaggerJsdoc.Options = {
       schemas: {
         ActiveRoom: {
           type: 'object',
+          description:
+            '활성화된 방 목록 - continueWatching: 이전에 참여했고 활성화된 방 / onAirRooms: 현재 활성화된 방',
           properties: {
             roomId: { type: 'number', example: 123 },
             roomTitle: { type: 'string', example: '같이 최신 영화 볼 사람' },
