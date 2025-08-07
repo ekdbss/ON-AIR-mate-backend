@@ -20,7 +20,7 @@ const router = Router();
  *             $ref: '#/components/schemas/CreateCollectionDto'
  *     responses:
  *       201:
- *         description: 컬렉션이 성공적으로 생성되었습니다.
+ *         description: 컬렉션 생성 성공
  *         content:
  *           application/json:
  *             schema:
@@ -39,9 +39,9 @@ const router = Router();
  *                       type: string
  *                       example: "컬렉션이 생성되었습니다."
  *       400:
- *         description: 잘못된 요청 데이터입니다.
+ *         description: 잘못된 요청 데이터
  *       401:
- *         description: 인증되지 않은 사용자입니다.
+ *         description: 인증되지 않은 사용자
  */
 router.post('/', requireAuth, collectionController.createCollection);
 
