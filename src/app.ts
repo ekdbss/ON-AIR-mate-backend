@@ -15,6 +15,7 @@ import { initSocketServer } from './socket/index.js';
 import aiSummaryRoutes from './routes/aiSummaryRoutes.js';
 import roomRoutes from './routes/roomRoute.js';
 import chatDirectRoutes from './routes/chatDirectRoute.js';
+import sharedCollectionRoute from './routes/sharedCollectionRoute.js';
 dotenv.config();
 
 const app: Express = express();
@@ -36,6 +37,7 @@ const corsOptions = {
     origin: string | undefined,
     callback: (err: Error | null, allow?: boolean) => void,
   ) {
+    console.log('연결 origin:', origin);
     // 개발 환경에서는 모든 origin 허용
     if (process.env.NODE_ENV === 'development') {
       callback(null, true);
@@ -47,11 +49,13 @@ const corsOptions = {
     const allowedOrigins = [
       //수정1
       address,
+      'http://54.180.254.48:3000',
       'https://54.180.254.48:3000',
       //'https://your-frontend-domain.com', // 실제 프론트엔드 도메인으로 변경
       //'https://onairmate.vercel.app', // 예시 도메인
       'http://localhost:3000', // 로컬 개발용
       'http://localhost:3001', // 로컬 개발용
+      'https://29d0611ca9f9.ngrok-free.app', // ✅ ngrok 주소
     ];
     console.log('배포 주소', address);
     console.log('연결 origin:', origin);
@@ -138,6 +142,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/chat/direct', chatDirectRoutes);
 app.use('/api/youtube', youtubeRoutes); // youtubeRecommendationRoute와 youtubeSearchRoute 병합
+app.use('/api/shared-collections', sharedCollectionRoute);
 app.use('/api/ai', aiSummaryRoutes);
 
 // 404 에러 핸들링
