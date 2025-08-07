@@ -16,6 +16,7 @@ import aiSummaryRoutes from './routes/aiSummaryRoutes.js';
 import roomRoutes from './routes/roomRoute.js';
 import chatDirectRoutes from './routes/chatDirectRoute.js';
 import sharedCollectionRoute from './routes/sharedCollectionRoute.js';
+import collectionRoutes from './routes/collectionRoutes.js';
 dotenv.config();
 
 const app: Express = express();
@@ -144,6 +145,7 @@ app.use('/api/chat/direct', chatDirectRoutes);
 app.use('/api/youtube', youtubeRoutes); // youtubeRecommendationRoute와 youtubeSearchRoute 병합
 app.use('/api/shared-collections', sharedCollectionRoute);
 app.use('/api/ai', aiSummaryRoutes);
+app.use('/api/collections', collectionRoutes);
 
 // 404 에러 핸들링
 app.use((req: Request, res: Response, next: NextFunction) => {
