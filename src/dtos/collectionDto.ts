@@ -6,6 +6,6 @@ export enum CollectionVisibility {
 
 export interface CreateCollectionDto {
   title: string;
-  description: string;
+  description?: string;
   visibility: CollectionVisibility;
 }
