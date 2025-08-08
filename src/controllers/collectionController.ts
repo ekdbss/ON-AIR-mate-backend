@@ -13,11 +13,11 @@ export const createCollection = async (req: Request, res: Response, next: NextFu
     const { title, description, visibility } = req.body as CreateCollectionDto;
 
     if (!title || !visibility) {
-      throw new AppError('COLLECTION_001', '제목과 공개 범위는 필수입니다.');
+      throw new AppError('COLLECTION_005', '제목과 공개 범위는 필수입니다.');
     }
 
     if (!Object.values(CollectionVisibility).includes(visibility)) {
-      throw new AppError('COLLECTION_002', '유효하지 않은 컬렉션 공개 범위 값입니다.');
+      throw new AppError('COLLECTION_006', '유효하지 않은 컬렉션 공개 범위 값입니다.');
     }
 
     const collectionData: CreateCollectionDto = { title, description, visibility };

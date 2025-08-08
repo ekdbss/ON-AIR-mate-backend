@@ -33,6 +33,8 @@ export const ERROR_CODES = {
   COLLECTION_002: { message: '컬렉션 소유자가 아닙니다.', statusCode: 403 },
   COLLECTION_003: { message: '공유하려면 공개 범위를 변경해주세요.', statusCode: 403 },
   COLLECTION_004: { message: '북마크가 존재하지 않습니다.', statusCode: 404 },
+  COLLECTION_005: { message: '제목과 공개 범위는 필수입니다.', statusCode: 400 },
+  COLLECTION_006: { message: '유효하지 않은 컬렉션 공개 범위 값입니다.', statusCode: 400 },
 
   // 추천 관련 (RECOMMEND_XXX)
   RECOMMEND_001: { message: '오늘 이미 추천했습니다.', statusCode: 409 },
