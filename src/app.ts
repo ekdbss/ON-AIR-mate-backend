@@ -13,6 +13,7 @@ import swaggerUi from 'swagger-ui-express';
 import { specs } from './swagger.js';
 import { createServer } from 'http';
 import { initSocketServer } from './socket/index.js';
+import redis from './redis.js';
 import aiSummaryRoutes from './routes/aiSummaryRoutes.js';
 import roomRoutes from './routes/roomRoute.js';
 import chatDirectRoutes from './routes/chatDirectRoute.js';
@@ -30,6 +31,20 @@ try {
   console.error('Socket.IO 서버 초기화 실패:', error);
   process.exit(1);
 }
+
+//Redis 연결 확인 
+redis.on('connect', () => {
+  console.log('🔗 Redis connected');
+});
+
+(async () => {
+  try {
+    const pong = await redis.ping();
+    console.log('🏓 Redis PING response:', pong);
+  } catch (err) {
+    console.error('🔥 Redis PING failed:', err);
+  }
+})();
 
 const port = process.env.PORT || 3000;
 const address = process.env.ADDRESS;
