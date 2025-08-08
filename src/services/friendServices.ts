@@ -2,6 +2,10 @@
 import { FriendshipStatus } from '@prisma/client';
 import AppError from '../middleware/errors/AppError.js';
 import { prisma } from '../lib/prisma.js';
+import { getIO } from '../socket/index.js';
+import redis from '../redis.js';
+import { USER_SOCKET_KEY } from '../socket/redisManager.js';
+import { saveDirectMessage } from './messageServices.js';
 
 // 타입 정의
 interface Friend {
@@ -392,15 +396,90 @@ export const inviteFriendToRoom = async (
     throw new AppError('ROOM_002'); // 방이 가득 찼습니다
   }
 
-  // 알림 생성
-  await prisma.notification.create({
-    data: {
-      fromUserId: userId,
-      toUserId: friendId,
-      type: 'roomInvite',
-      title: `${room.roomName} 방에 초대되었습니다.`,
-    },
+  const result = await prisma.$transaction(async tx => {
+    // 1. 알림 생성
+    const notification = await tx.notification.create({
+      data: {
+        fromUserId: userId,
+        toUserId: friendId,
+        type: 'roomInvite',
+        title: `${room.roomName} 방에 초대되었습니다.`,
+      },
+    });
+
+    // 2. 초대한 사람 정보 조회
+    const inviter = await tx.user.findUnique({
+      where: { userId },
+      select: {
+        userId: true,
+        nickname: true,
+        profileImage: true,
+      },
+    });
+
+    // 3. 방의 영상 정보 조회
+    const video = await tx.youtubeVideo.findUnique({
+      where: { videoId: room.videoId },
+      select: {
+        title: true,
+        thumbnail: true,
+      },
+    });
+
+    return { notification, inviter, video };
   });
+
+  // 4. 1:1 채팅 메시지로도 저장
+  try {
+    await saveDirectMessage(userId, {
+      receiverId: friendId,
+      content: JSON.stringify({
+        roomId: room.roomId,
+        roomName: room.roomName,
+        videoTitle: result.video?.title || '',
+        message: `${room.roomName} 방에 초대했습니다.`,
+      }),
+      type: 'roomInvite',
+    });
+  } catch (error) {
+    console.error('초대 채팅 메시지 저장 실패:', error);
+  }
+
+  // 5. Socket.IO로 실시간 알림 전송
+  try {
+    const io = getIO();
+
+    // Redis에서 친구의 socketId 찾기
+    const friendSocketId = await redis.get(USER_SOCKET_KEY(friendId));
+
+    if (friendSocketId) {
+      // 특정 소켓으로 방 초대 알림 전송
+      io.to(friendSocketId).emit('roomInviteReceived', {
+        inviter: {
+          userId: result.inviter!.userId,
+          nickname: result.inviter!.nickname,
+          profileImage: result.inviter!.profileImage,
+        },
+        room: {
+          roomId: room.roomId,
+          roomName: room.roomName,
+          currentParticipants: currentParticipants,
+          maxParticipants: room.maxParticipants,
+          isPrivate: !room.isPublic,
+        },
+        video: {
+          title: result.video?.title || '',
+          thumbnail: result.video?.thumbnail || '',
+        },
+        invitedAt: new Date().toISOString(),
+      });
+
+      console.log(`방 초대 알림 전송: ${userId} -> ${friendId} (방: ${roomId})`);
+    }
+  } catch (error) {
+    // Socket 전송 실패해도 초대는 성공으로 처리
+    console.error('방 초대 소켓 알림 전송 실패:', error);
+  }
 };
 
 /**
