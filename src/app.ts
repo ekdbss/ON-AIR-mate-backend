@@ -32,7 +32,7 @@ try {
   process.exit(1);
 }
 
-//Redis 연결 확인 
+//Redis 연결 확인
 redis.on('connect', () => {
   console.log('🔗 Redis connected');
 });
