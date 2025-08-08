@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { CreateCollectionDto, CollectionVisibility } from '../dtos/collectionDto';
-import * as collectionService from '../services/collectionService';
-import AppError from '../middleware/errors/AppError';
-import { sendSuccess } from '../utils/response';
+import { CreateCollectionDto, CollectionVisibility } from '../dtos/collectionDto.js';
+import * as collectionService from '../services/collectionService.js';
+import AppError from '../middleware/errors/AppError.js';
+import { sendSuccess } from '../utils/response.js';
 
 export const createCollection = async (req: Request, res: Response, next: NextFunction) => {
   try {
