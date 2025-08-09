@@ -83,10 +83,21 @@ model UserBlock {
   isActive      Boolean  @default(true) @map("is_active")
   blocked       User     @relation("BlockedUser", fields: [blockedUserId], references: [userId], onDelete: Cascade)
   blocker       User     @relation("BlockerUser", fields: [blockerUserId], references: [userId], onDelete: Cascade)
+  customReason  String?     
+  reportReasons UserBlockReason[] 
 
   @@unique([blockerUserId, blockedUserId], name: "unique_block")
   @@index([blockedUserId], map: "user_blocks_blocked_user_id_fkey")
   @@map("user_blocks")
+}
+
+model UserBlockReason {
+  userBlockReasonId        Int           @id @default(autoincrement())@map("user_block_reason_id")
+  block     UserBlock     @relation(fields: [blockId], references: [blockId], onDelete: Cascade)
+  blockId   Int           @map("block_id")
+  reason    reportReason
+
+  @@map("user_block_reasons")
 }
 
 model Room {
@@ -373,4 +384,12 @@ enum NotificationStatus {
   read
 
   @@map("notification_status")
+}
+
+enum reportReason {
+  SPAM
+  SPOIL
+  PROFANITY
+  HATE
+  ETC
 }
