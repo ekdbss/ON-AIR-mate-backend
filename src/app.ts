@@ -160,6 +160,7 @@ app.use('/api/rooms', roomRoutes);
 app.use('/api/chat/direct', chatDirectRoutes);
 app.use('/api/youtube', youtubeRoutes); // youtubeRecommendationRoute와 youtubeSearchRoute 병합
 app.use('/api/shared-collections', sharedCollectionRoute);
+app.use('/api/friends', friendRoutes);
 app.use('/api/ai', aiSummaryRoutes);
 
 // 404 에러 핸들링
