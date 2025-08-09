@@ -153,6 +153,6 @@ router.get('/search', requireAuth, searchYoutubeVideos);
  *       500:
  *         description: 서버 에러
  */
-router.get('/:videoId', requireAuth, getYoutubeVideoDetail);
+router.get('/videos/:videoId', requireAuth, getYoutubeVideoDetail);
 
 export default router;

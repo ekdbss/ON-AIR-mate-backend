@@ -9,13 +9,24 @@ import { onlineUser, offlineUser } from './redisManager.js';
 let io: Server;
 
 export const initSocketServer = (server: HTTPServer) => {
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://29d0611ca9f9.ngrok-free.app', // ✅ ngrok 주소
+  ];
+  /* process.env.NODE_ENV === 'development'
+      ? [
+          'http://localhost:3000',
+          'http://localhost:3001',
+          'https://29d0611ca9f9.ngrok-free.app', // ✅ ngrok 주소
+        ]
+      : process.env.ALLOWED_ORIGINS?.split(',') * || [];
+      */
   io = new Server(server, {
     cors: {
-      origin:
-        process.env.NODE_ENV === 'development'
-          ? 'production'
-          : process.env.ALLOWED_ORIGINS?.split(',') || [],
+      origin: allowedOrigins,
       methods: ['GET', 'POST'],
+      credentials: true,
     },
   });
 

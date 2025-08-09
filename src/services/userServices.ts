@@ -240,3 +240,52 @@ export const sendUserFeedback = async (userId: number, content: string) => {
     throw new AppError('GENERAL_005', '의견을 저장하는 중 오류가 발생했습니다.', error);
   }
 };
+
+export const deleteParticipatedRoom = async (userId: number, roomId: number) => {
+  try {
+    // 해당 사용자의 참여 기록 확인
+    const participation = await prisma.roomParticipant.findUnique({
+      where: {
+        unique_participant: {
+          roomId,
+          userId,
+        },
+      },
+    });
+
+    if (!participation) {
+      throw new AppError('ROOM_001', '참여한 방 기록을 찾을 수 없습니다.');
+    }
+
+    // 본인의 기록만 삭제할 수 있도록 확인
+    if (participation.userId !== userId) {
+      throw new AppError('AUTH_006', '다른 사용자의 기록은 삭제할 수 없습니다.');
+    }
+
+    // left_at이 null인 경우 (아직 방에 있는 경우)
+    if (participation.left_at === null) {
+      throw new AppError('ROOM_009', '현재 참여 중인 방의 기록은 삭제할 수 없습니다.');
+    }
+
+    // 참여 기록 삭제
+    await prisma.roomParticipant.delete({
+      where: {
+        participantId: participation.participantId,
+      },
+    });
+
+    console.log(
+      `[deleteParticipatedRoom] 참여 기록 삭제 완료 - userId: ${userId}, roomId: ${roomId}`,
+    );
+  } catch (error) {
+    console.error('[deleteParticipatedRoom] 에러 발생:', error);
+
+    // AppError인 경우 그대로 throw
+    if (error instanceof AppError) {
+      throw error;
+    }
+
+    // 예상치 못한 에러
+    throw new AppError('GENERAL_005', '참여 기록을 삭제하는 중 오류가 발생했습니다.', error);
+  }
+};

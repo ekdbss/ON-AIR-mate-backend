@@ -201,3 +201,28 @@ export const sendFeedback = async (req: Request, res: Response, next: NextFuncti
     next(error);
   }
 };
+
+// 참여한 방 기록 삭제
+export const deleteParticipatedRoom = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.userId;
+    const roomId = parseInt(req.params.roomId, 10);
+
+    if (!userId) {
+      throw new AppError('AUTH_007');
+    }
+
+    if (isNaN(roomId)) {
+      throw new AppError('GENERAL_001', '유효하지 않은 방 ID입니다.');
+    }
+
+    await userService.deleteParticipatedRoom(userId, roomId);
+
+    sendSuccess(res, {
+      success: true,
+      message: '참여한 방 기록이 삭제되었습니다.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};

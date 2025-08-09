@@ -31,7 +31,7 @@ export const createRoom = async (data: createNewRoom) => {
   const room = await prisma.room.create({
     data: {
       roomName: data.roomName,
-      isPublic: data.isPublic ?? true,
+      isPublic: data.isPrivate,
       maxParticipants: data.maxParticipants ?? 6,
       videoId: video.videoId,
       hostId: data.hostId,

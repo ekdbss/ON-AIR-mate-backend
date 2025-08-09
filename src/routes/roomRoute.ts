@@ -41,7 +41,7 @@ const activeRoomController = new ActiveRoomController(activeRoomService);
  *               roomName:
  *                 type: string
  *                 example: 즐거운 방
- *               isPublic:
+ *               isPrivate:
  *                 type: boolean
  *                 example: true
  *               maxParticipants:
@@ -394,14 +394,14 @@ router.get('/:roomId/messages', requireAuth, getRoomMessages);
  *                   example: "dQw4w9WgXcQ"
  *                 videoTitle:
  *                   type: string
- *                   example: "Never Gonna Give You Up"
+ *                   example: "Never Ending Story"
  *                 videoThumbnail:
  *                   type: string
  *                   format: url
  *                   example: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg"
  *                 hostNickname:
  *                   type: string
- *                   example: "rick_astley"
+ *                   example: "영화광"
  *                 hostProfileImage:
  *                   type: string
  *                   format: url
@@ -417,7 +417,7 @@ router.get('/:roomId/messages', requireAuth, getRoomMessages);
  *                   example: 8
  *                 duration:
  *                   type: string
- *                   example: "00:15:30"
+ *                   example: "00:03:30"
  *                 isPrivate:
  *                   type: boolean
  *                   example: false

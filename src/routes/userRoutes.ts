@@ -8,6 +8,7 @@ import {
   getParticipatedRooms,
   getSearchHistory,
   sendFeedback,
+  deleteParticipatedRoom,
 } from '../controllers/userController.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
@@ -384,5 +385,114 @@ router.get('/search-history', requireAuth, getSearchHistory);
  *                   format: date-time
  */
 router.post('/feedback', requireAuth, sendFeedback);
+
+/**
+ * @swagger
+ * /api/users/participated-rooms/{roomId}:
+ *   delete:
+ *     summary: 참여한 방 기록 삭제
+ *     description: 사용자가 참여했던 방 목록의 기록을 삭제합니다.
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 삭제할 방의 고유 ID
+ *     responses:
+ *       200:
+ *         description: 참여한 방 기록이 성공적으로 삭제됨
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 참여한 방 기록이 삭제되었습니다.
+ *       400:
+ *         description: 잘못된 요청 (유효하지 않은 방 ID)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: object
+ *                   properties:
+ *                     code:
+ *                       type: string
+ *                       example: GENERAL_001
+ *                     message:
+ *                       type: string
+ *                       example: 유효하지 않은 방 ID입니다.
+ *       401:
+ *         description: 인증 실패
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: object
+ *                   properties:
+ *                     code:
+ *                       type: string
+ *                       example: AUTH_007
+ *                     message:
+ *                       type: string
+ *                       example: 인증이 필요합니다.
+ *       404:
+ *         description: 참여한 방 기록을 찾을 수 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: object
+ *                   properties:
+ *                     code:
+ *                       type: string
+ *                       example: ROOM_001
+ *                     message:
+ *                       type: string
+ *                       example: 참여한 방 기록을 찾을 수 없습니다.
+ *       409:
+ *         description: 현재 참여 중인 방의 기록은 삭제할 수 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: object
+ *                   properties:
+ *                     code:
+ *                       type: string
+ *                       example: ROOM_009
+ *                     message:
+ *                       type: string
+ *                       example: 현재 참여 중인 방의 기록은 삭제할 수 없습니다.
+ */
+router.delete('/participated-rooms/:roomId', requireAuth, deleteParticipatedRoom);
 
 export default router;
