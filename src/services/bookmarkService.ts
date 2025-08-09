@@ -37,6 +37,7 @@ export const getBookmarks = async (
           roomName: true,
           video: {
             select: {
+              videoId: true,
               title: true,
               thumbnail: true,
             },
@@ -53,6 +54,7 @@ export const getBookmarks = async (
 
   const formatted = bookmarks.map(bookmark => ({
     bookmarkId: bookmark.bookmarkId,
+    videoId: bookmark.room?.video?.videoId ?? null,
     videoTitle: bookmark.room?.video?.title,
     videoThumbnail: bookmark.room?.video?.thumbnail,
     message: bookmark.content,

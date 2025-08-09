@@ -5,7 +5,7 @@ import { sendSuccess, sendError } from '../utils/response.js';
 
 export const createRoom = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { roomName, isPublic, maxParticipants, videoId } = req.body;
+    const { roomName, isPrivate, maxParticipants, videoId } = req.body;
     const hostId = req.user?.userId;
     console.log('user:', req.user?.userId, ', ', req.user?.nickname);
 
@@ -26,7 +26,7 @@ export const createRoom = async (req: Request, res: Response, next: NextFunction
     const newRoom = await roomService.createRoom({
       hostId,
       roomName,
-      isPublic,
+      isPrivate: !isPrivate,
       maxParticipants,
       videoId,
     });

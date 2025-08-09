@@ -35,12 +35,36 @@ const options: swaggerJsdoc.Options = {
         },
       },
       schemas: {
-        ActiveRoom: {
+        CreateCollectionDto: {
           type: 'object',
           properties: {
+            title: {
+              type: 'string',
+              description: '컬렉션 제목',
+              example: '나의 플레이리스트',
+            },
+            description: {
+              type: 'string',
+              description: '컬렉션에 대한 간단한 소개(100자 이내)',
+              example: '신나는 노래 모음',
+            },
+            visibility: {
+              type: 'string',
+              enum: ['private', 'friends', 'public'],
+              description: '공개 범위',
+              example: 'public',
+            },
+          },
+          required: ['title', 'visibility'],
+        },
+        ActiveRoom: {
+          type: 'object',
+          description:
+            '활성화된 방 목록 - continueWatching: 이전에 참여했고 활성화된 방 / onAirRooms: 현재 활성화된 방',
+          properties: {
             roomId: { type: 'number', example: 123 },
-            roomTitle: { type: 'string', example: '같이 명작 영화 봐요' },
-            videoTitle: { type: 'string', example: '쇼생크 탈출' },
+            roomTitle: { type: 'string', example: '같이 최신 영화 볼 사람' },
+            videoTitle: { type: 'string', example: '케이팝 데몬 헌터스' },
             videoThumbnail: { type: 'string', example: 'https://thumbnail.url/image.jpg' },
             hostNickname: { type: 'string', example: '영화광' },
             hostProfileImage: { type: 'string', example: 'https://profile.url/image.png' },
@@ -83,17 +107,16 @@ const options: swaggerJsdoc.Options = {
             videoId: { type: 'string', example: 'dQw4w9WgXcQ' },
             title: {
               type: 'string',
-              example: 'Rick Astley - Never Gonna Give You Up (Official Music Video)',
+              example: 'IU - Never Ending Story (Official Music Video)',
             },
             thumbnail: {
               type: 'string',
               example: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg',
             },
-            channelName: { type: 'string', example: 'Rick Astley' },
+            channelName: { type: 'string', example: 'IU' },
             viewCount: { type: 'integer', example: 1000000000 },
-            uploadTime: { type: 'string', format: 'date-time', example: '2009-10-25T06:57:33Z' },
-            duration: { type: 'string', example: 'PT3M33S' },
-            durationFormatted: { type: 'string', example: '03:33' },
+            uploadTime: { type: 'string', format: 'date-time', example: '2025-04-25T06:57:33Z' },
+            duration: { type: 'string', example: '03:33' },
           },
         },
         RoomInfoResponse: {

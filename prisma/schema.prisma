@@ -83,10 +83,21 @@ model UserBlock {
   isActive      Boolean  @default(true) @map("is_active")
   blocked       User     @relation("BlockedUser", fields: [blockedUserId], references: [userId], onDelete: Cascade)
   blocker       User     @relation("BlockerUser", fields: [blockerUserId], references: [userId], onDelete: Cascade)
+  customReason  String?     
+  reportReasons UserBlockReason[] 
 
   @@unique([blockerUserId, blockedUserId], name: "unique_block")
   @@index([blockedUserId], map: "user_blocks_blocked_user_id_fkey")
   @@map("user_blocks")
+}
+
+model UserBlockReason {
+  userBlockReasonId        Int           @id @default(autoincrement())@map("user_block_reason_id")
+  block     UserBlock     @relation(fields: [blockId], references: [blockId], onDelete: Cascade)
+  blockId   Int           @map("block_id")
+  reason    reportReason
+
+  @@map("user_block_reasons")
 }
 
 model Room {
@@ -101,16 +112,16 @@ model Room {
   autoArchive         Boolean           @default(true) @map("auto_archive")
   inviteAuth          InviteAuth        @default(all) @map("invite_auth")
   watched30s          Boolean           @default(false) @map("watched_30s")
-  startType           VideoStartType    @default(BEGINNING)
-  startTime           Int               @default(0)
   createdAt           DateTime          @default(now()) @map("created_at")
   updatedAt           DateTime          @updatedAt @map("updated_at")
   videoId             String            @map("video_id") @db.VarChar(20)
+  startTime           Int               @default(0)
+  startType           VideoStartType    @default(BEGINNING)
   bookmarks           Bookmark[]
   messages            RoomMessage[]
   participants        RoomParticipant[]
   host                User              @relation("HostUser", fields: [hostId], references: [userId], onDelete: Cascade)
-  video               YoutubeVideo?     @relation("VideoOnRoom", fields: [videoId], references: [videoId])
+  video               YoutubeVideo      @relation("VideoOnRoom", fields: [videoId], references: [videoId])
 
   @@index([hostId], map: "rooms_host_id_fkey")
   @@index([videoId], map: "rooms_video_id_fkey")
@@ -185,10 +196,10 @@ model Bookmark {
   roomId             Int         @map("room_id")
   title              String?     @db.VarChar(50)
   content            String?     @db.Text
-  timeline           Int?        @default(0)
   originalBookmarkId Int?        @map("original_bookmark_id")
   createdAt          DateTime    @default(now()) @map("created_at")
   collectionId       Int?        @map("collection_id")
+  timeline           Int?        @default(0)
   collection         Collection? @relation(fields: [collectionId], references: [collectionId])
   originalBookmark   Bookmark?   @relation("BookmarkCopy", fields: [originalBookmarkId], references: [bookmarkId])
   copiedBookmarks    Bookmark[]  @relation("BookmarkCopy")
@@ -373,4 +384,12 @@ enum NotificationStatus {
   read
 
   @@map("notification_status")
+}
+
+enum reportReason {
+  SPAM
+  SPOIL
+  PROFANITY
+  HATE
+  ETC
 }
