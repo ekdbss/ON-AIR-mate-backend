@@ -71,4 +71,33 @@ router.post('/', requireAuth, collectionController.createCollection);
  */
 router.get('/', requireAuth, collectionController.getCollections);
 
+/**
+ * @swagger
+ * /api/collections/{collectionId}:
+ *   get:
+ *     summary: 특정 컬렉션의 상세 정보 및 북마크 조회
+ *     tags: [Collections]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: collectionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 컬렉션 ID
+ *     responses:
+ *       200:
+ *         description: 컬렉션 상세 정보 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GetCollectionDetailDto'
+ *       401:
+ *         description: 인증되지 않은 사용자 또는 권한 없음
+ *       404:
+ *         description: 컬렉션을 찾을 수 없음
+ */
+router.get('/:collectionId', requireAuth, collectionController.getCollectionDetail);
+
 export default router;
