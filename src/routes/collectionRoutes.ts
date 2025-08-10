@@ -45,4 +45,30 @@ const router = Router();
  */
 router.post('/', requireAuth, collectionController.createCollection);
 
+/**
+ * @swagger
+ * /api/collections:
+ *   get:
+ *     summary: 사용자의 컬렉션 목록 조회
+ *     tags: [Collections]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 컬렉션 목록 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/GetCollectionDto'
+ */
+router.get('/', requireAuth, collectionController.getCollections);
+
 export default router;

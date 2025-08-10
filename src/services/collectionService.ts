@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { CreateCollectionDto } from '../dtos/collectionDto.js';
+import { CreateCollectionDto, GetCollectionDto } from '../dtos/collectionDto.js';
 import AppError from '../middleware/errors/AppError.js';
 
 const prisma = new PrismaClient();
@@ -25,4 +25,23 @@ export const createCollection = async (userId: number, collectionData: CreateCol
     console.error('컬렉션 생성 오류:', error);
     throw error;
   }
+};
+
+export const getCollectionsByUserId = async (userId: number): Promise<GetCollectionDto[]> => {
+  const collections = await prisma.collection.findMany({
+    where: {
+      userId: userId,
+    },
+  });
+
+  return collections.map(collection => ({
+    collectionId: collection.collectionId,
+    title: collection.title,
+    description: collection.description,
+    bookmarkCount: collection.bookmarkCount,
+    visibility: collection.visibility,
+    coverImage: collection.coverImage,
+    createdAt: collection.createdAt,
+    updatedAt: collection.updatedAt,
+  }));
 };

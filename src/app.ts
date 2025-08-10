@@ -18,6 +18,7 @@ import aiSummaryRoutes from './routes/aiSummaryRoutes.js';
 import roomRoutes from './routes/roomRoute.js';
 import chatDirectRoutes from './routes/chatDirectRoute.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import collectionRoute from './routes/collectionRoutes.js';
 import sharedCollectionRoute from './routes/sharedCollectionRoute.js';
 dotenv.config();
 
@@ -162,6 +163,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/chat/direct', chatDirectRoutes);
 app.use('/api/youtube', youtubeRoutes); // youtubeRecommendationRoute와 youtubeSearchRoute 병합
+app.use('/api/collections', collectionRoute);
 app.use('/api/shared-collections', sharedCollectionRoute);
 app.use('/api/friends', friendRoutes);
 app.use('/api/ai', aiSummaryRoutes);

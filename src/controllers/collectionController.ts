@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { CreateCollectionDto, CollectionVisibility } from '../dtos/collectionDto.js';
+import { CreateCollectionDto } from '../dtos/collectionDto.js';
 import * as collectionService from '../services/collectionService.js';
 import AppError from '../middleware/errors/AppError.js';
 import { sendSuccess } from '../utils/response.js';
+import { CollectionVisibility } from '@prisma/client';
 
 export const createCollection = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -31,6 +32,19 @@ export const createCollection = async (req: Request, res: Response, next: NextFu
       },
       201,
     );
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getCollections = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!req.user) {
+      throw new AppError('AUTH_001', '인증되지 않은 사용자입니다.');
+    }
+    const userId = req.user.userId;
+    const collections = await collectionService.getCollectionsByUserId(userId);
+    sendSuccess(res, { collections });
   } catch (error) {
     next(error);
   }
