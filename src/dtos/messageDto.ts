@@ -11,6 +11,7 @@ export interface SaveRoomMessageInput {
 export interface RoomMessageDTO {
   messageId: number;
   userId: number;
+  nickname: string;
   profileImage: string;
   content: string;
   messageType: MessageType;
