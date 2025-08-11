@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const redis = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
+  host: process.env.REDIS_HOST || 'onairmate.duckdns.org',
   port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379,
   password: process.env.REDIS_PASSWORD || undefined,
   maxRetriesPerRequest: 3,
@@ -20,6 +20,10 @@ redis.on('ready', () => {
 });
 redis.on('error', err => {
   console.error('❌ Redis connection error:', err);
+});
+
+redis.on('close', () => {
+  console.log('⚠️ Redis connection closed');
 });
 
 export default redis;

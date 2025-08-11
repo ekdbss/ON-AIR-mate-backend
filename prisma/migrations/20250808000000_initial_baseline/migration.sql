@@ -77,8 +77,12 @@ CREATE TABLE `rooms` (
     `watched_30s` BOOLEAN NOT NULL DEFAULT false,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
+    `video_id` VARCHAR(20) NOT NULL,
+    `startTime` INTEGER NOT NULL DEFAULT 0,
+    `startType` ENUM('BOOKMARK', 'BEGINNING') NOT NULL DEFAULT 'BEGINNING',
 
     INDEX `rooms_host_id_fkey`(`host_id`),
+    INDEX `rooms_video_id_fkey`(`video_id`),
     PRIMARY KEY (`room_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -89,6 +93,9 @@ CREATE TABLE `room_participants` (
     `user_id` INTEGER NOT NULL,
     `role` ENUM('host', 'participant') NOT NULL DEFAULT 'participant',
     `joined_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `left_at` DATETIME(3) NULL,
+    `last_joined_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `total_stay_time` INTEGER NOT NULL DEFAULT 0,
 
     INDEX `room_participants_user_id_fkey`(`user_id`),
     UNIQUE INDEX `room_participants_room_id_user_id_key`(`room_id`, `user_id`),
@@ -144,10 +151,13 @@ CREATE TABLE `bookmarks` (
     `content` TEXT NULL,
     `original_bookmark_id` INTEGER NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `collection_id` INTEGER NULL,
+    `timeline` INTEGER NULL DEFAULT 0,
 
     INDEX `bookmarks_original_bookmark_id_fkey`(`original_bookmark_id`),
     INDEX `bookmarks_room_id_fkey`(`room_id`),
     INDEX `bookmarks_user_id_fkey`(`user_id`),
+    INDEX `bookmarks_collection_id_fkey`(`collection_id`),
     PRIMARY KEY (`bookmark_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -162,6 +172,8 @@ CREATE TABLE `collections` (
     `is_liked` BOOLEAN NOT NULL DEFAULT false,
     `original_collection_id` INTEGER NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `cover_image` VARCHAR(500) NULL,
+    `updated_at` DATETIME(3) NOT NULL,
 
     INDEX `collections_original_collection_id_fkey`(`original_collection_id`),
     INDEX `collections_user_id_fkey`(`user_id`),
@@ -237,6 +249,17 @@ CREATE TABLE `youtube_videos` (
     PRIMARY KEY (`video_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- CreateTable
+CREATE TABLE `user_feedbacks` (
+    `feedback_id` INTEGER NOT NULL AUTO_INCREMENT,
+    `user_id` INTEGER NOT NULL,
+    `content` TEXT NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    INDEX `user_feedbacks_user_id_fkey`(`user_id`),
+    PRIMARY KEY (`feedback_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- AddForeignKey
 ALTER TABLE `user_agreements` ADD CONSTRAINT `user_agreements_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -254,6 +277,9 @@ ALTER TABLE `user_blocks` ADD CONSTRAINT `user_blocks_blocker_user_id_fkey` FORE
 
 -- AddForeignKey
 ALTER TABLE `rooms` ADD CONSTRAINT `rooms_host_id_fkey` FOREIGN KEY (`host_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `rooms` ADD CONSTRAINT `rooms_video_id_fkey` FOREIGN KEY (`video_id`) REFERENCES `youtube_videos`(`video_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `room_participants` ADD CONSTRAINT `room_participants_room_id_fkey` FOREIGN KEY (`room_id`) REFERENCES `rooms`(`room_id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -278,6 +304,9 @@ ALTER TABLE `user_chat_messages` ADD CONSTRAINT `user_chat_messages_chat_id_fkey
 
 -- AddForeignKey
 ALTER TABLE `user_chat_messages` ADD CONSTRAINT `user_chat_messages_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `bookmarks` ADD CONSTRAINT `bookmarks_collection_id_fkey` FOREIGN KEY (`collection_id`) REFERENCES `collections`(`collection_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `bookmarks` ADD CONSTRAINT `bookmarks_original_bookmark_id_fkey` FOREIGN KEY (`original_bookmark_id`) REFERENCES `bookmarks`(`bookmark_id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -317,3 +346,7 @@ ALTER TABLE `daily_recommendations` ADD CONSTRAINT `daily_recommendations_recomm
 
 -- AddForeignKey
 ALTER TABLE `search_history` ADD CONSTRAINT `search_history_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `user_feedbacks` ADD CONSTRAINT `user_feedbacks_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+

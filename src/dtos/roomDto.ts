@@ -8,14 +8,14 @@ export interface Room {
   roomName: string;
   hostId: number;
   participants: Participant[];
-  isPublic?: boolean;
+  isPrivate?: boolean;
   maxParticipants?: number;
 }
 
 export interface createNewRoom {
   roomName: string;
   hostId: number;
-  isPublic?: boolean;
+  isPrivate?: boolean;
   maxParticipants?: number;
   videoId: string;
 }

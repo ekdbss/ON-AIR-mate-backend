@@ -1,6 +1,8 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 const hostUrl =
-  process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'http://54.180.254.48:3000'; // 환경변수로 관리
+  process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3000' // 개발: HTTP
+    : 'https://onairmate.duckdns.org';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -35,12 +37,84 @@ const options: swaggerJsdoc.Options = {
         },
       },
       schemas: {
-        ActiveRoom: {
+        GetCollectionDto: {
           type: 'object',
           properties: {
+            collectionId: { type: 'integer', example: 123 },
+            title: { type: 'string', example: '컬렉션 제목' },
+            description: { type: 'string', example: '컬렉션 소개' },
+            bookmarkCount: { type: 'integer', example: 5 },
+            visibility: {
+              type: 'string',
+              enum: ['public', 'friends', 'private'],
+              example: 'private',
+            },
+            coverImage: { type: 'string', nullable: true, example: '커버이미지URL' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        GetCollectionDetailDto: {
+          type: 'object',
+          properties: {
+            collectionId: { type: 'integer', example: 123 },
+            title: { type: 'string', example: '컬렉션 제목' },
+            description: { type: 'string', example: '컬렉션 소개' },
+            bookmarkCount: { type: 'integer', example: 5 },
+            visibility: {
+              type: 'string',
+              enum: ['public', 'friends', 'private'],
+              example: 'private',
+            },
+            coverImage: { type: 'string', nullable: true, example: '커버이미지URL' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+            bookmarks: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  bookmarkId: { type: 'integer', example: 456 },
+                  videoTitle: { type: 'string', example: '비디오 제목' },
+                  videoThumbnail: { type: 'string', example: '비디오 썸네일 URL' },
+                  roomTitle: { type: 'string', example: '방 제목' },
+                  message: { type: 'string', example: '북마크 메시지' },
+                  createdAt: { type: 'string', format: 'date-time' },
+                },
+              },
+            },
+          },
+        },
+        CreateCollectionDto: {
+          type: 'object',
+          properties: {
+            title: {
+              type: 'string',
+              description: '컬렉션 제목',
+              example: '나의 플레이리스트',
+            },
+            description: {
+              type: 'string',
+              description: '컬렉션에 대한 간단한 소개(100자 이내)',
+              example: '신나는 노래 모음',
+            },
+            visibility: {
+              type: 'string',
+              enum: ['private', 'friends', 'public'],
+              description: '공개 범위',
+              example: 'public',
+            },
+          },
+          required: ['title', 'visibility'],
+        },
+        ActiveRoom: {
+          type: 'object',
+          description:
+            '활성화된 방 목록 - continueWatching: 이전에 참여했고 활성화된 방 / onAirRooms: 현재 활성화된 방',
+          properties: {
             roomId: { type: 'number', example: 123 },
-            roomTitle: { type: 'string', example: '같이 명작 영화 봐요' },
-            videoTitle: { type: 'string', example: '쇼생크 탈출' },
+            roomTitle: { type: 'string', example: '같이 최신 영화 볼 사람' },
+            videoTitle: { type: 'string', example: '케이팝 데몬 헌터스' },
             videoThumbnail: { type: 'string', example: 'https://thumbnail.url/image.jpg' },
             hostNickname: { type: 'string', example: '영화광' },
             hostProfileImage: { type: 'string', example: 'https://profile.url/image.png' },
@@ -83,17 +157,16 @@ const options: swaggerJsdoc.Options = {
             videoId: { type: 'string', example: 'dQw4w9WgXcQ' },
             title: {
               type: 'string',
-              example: 'Rick Astley - Never Gonna Give You Up (Official Music Video)',
+              example: 'IU - Never Ending Story (Official Music Video)',
             },
             thumbnail: {
               type: 'string',
               example: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg',
             },
-            channelName: { type: 'string', example: 'Rick Astley' },
+            channelName: { type: 'string', example: 'IU' },
             viewCount: { type: 'integer', example: 1000000000 },
-            uploadTime: { type: 'string', format: 'date-time', example: '2009-10-25T06:57:33Z' },
-            duration: { type: 'string', example: 'PT3M33S' },
-            durationFormatted: { type: 'string', example: '03:33' },
+            uploadTime: { type: 'string', format: 'date-time', example: '2025-04-25T06:57:33Z' },
+            duration: { type: 'string', example: '03:33' },
           },
         },
         RoomInfoResponse: {

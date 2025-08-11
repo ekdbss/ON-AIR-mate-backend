@@ -1,5 +1,6 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
+import friendRoutes from './routes/friendRoutes.js';
 import cors from 'cors';
 import errorHandler from './middleware/errors/errorHandler.js';
 import AppError from './middleware/errors/AppError.js';
@@ -12,9 +13,12 @@ import swaggerUi from 'swagger-ui-express';
 import { specs } from './swagger.js';
 import { createServer } from 'http';
 import { initSocketServer } from './socket/index.js';
+import redis from './redis.js';
 import aiSummaryRoutes from './routes/aiSummaryRoutes.js';
 import roomRoutes from './routes/roomRoute.js';
 import chatDirectRoutes from './routes/chatDirectRoute.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import collectionRoute from './routes/collectionRoutes.js';
 import sharedCollectionRoute from './routes/sharedCollectionRoute.js';
 dotenv.config();
 
@@ -22,14 +26,34 @@ const app: Express = express();
 const server = createServer(app);
 
 try {
-  initSocketServer(server); // socket.io 연결
+  await initSocketServer(server); // socket.io 연결
 } catch (error) {
   console.error('Socket.IO 서버 초기화 실패:', error);
   process.exit(1);
 }
 
+(async () => {
+  try {
+    const pong = await redis.ping();
+    console.log('🏓 Redis PING response:', pong);
+  } catch (err) {
+    console.error('🔥 Redis PING failed:', err);
+  }
+})();
+
 const port = process.env.PORT || 3000;
 const address = process.env.ADDRESS;
+
+app.enable('trust proxy');
+
+if (process.env.NODE_ENV === 'production') {
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.header('x-forwarded-proto') !== 'https') {
+      return res.redirect(301, `https://${req.header('host')}${req.url}`);
+    }
+    next();
+  });
+}
 
 // CORS 설정
 const corsOptions = {
@@ -49,13 +73,10 @@ const corsOptions = {
     const allowedOrigins = [
       //수정1
       address,
-      'http://54.180.254.48:3000',
-      'https://54.180.254.48:3000',
-      //'https://your-frontend-domain.com', // 실제 프론트엔드 도메인으로 변경
-      //'https://onairmate.vercel.app', // 예시 도메인
+      'https://54.180.254.48',
+      'https://onairmate.duckdns.org',
       'http://localhost:3000', // 로컬 개발용
       'http://localhost:3001', // 로컬 개발용
-      'https://29d0611ca9f9.ngrok-free.app', // ✅ ngrok 주소
     ];
     console.log('배포 주소', address);
     console.log('연결 origin:', origin);
@@ -142,8 +163,11 @@ app.use('/api/users', userRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/chat/direct', chatDirectRoutes);
 app.use('/api/youtube', youtubeRoutes); // youtubeRecommendationRoute와 youtubeSearchRoute 병합
+app.use('/api/collections', collectionRoute);
 app.use('/api/shared-collections', sharedCollectionRoute);
+app.use('/api/friends', friendRoutes);
 app.use('/api/ai', aiSummaryRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // 404 에러 핸들링
 app.use((req: Request, res: Response, next: NextFunction) => {

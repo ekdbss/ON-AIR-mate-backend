@@ -1,27 +1,19 @@
 import { Server } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import chatHandler from './chatHandler.js';
-import { createAdapter } from '@socket.io/redis-adapter';
-import Redis from 'ioredis';
+import redis from '../redis.js';
 import { findUserByToken } from '../services/authServices.js';
 import { onlineUser, offlineUser } from './redisManager.js';
 
 let io: Server;
 
-export const initSocketServer = (server: HTTPServer) => {
+export const initSocketServer = async (server: HTTPServer) => {
   const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:3001',
-    'https://29d0611ca9f9.ngrok-free.app', // ✅ ngrok 주소
+    'http://54.180.254.48:3000',
+    'https://onairmate.duckdns.org',
   ];
-  /* process.env.NODE_ENV === 'development'
-      ? [
-          'http://localhost:3000',
-          'http://localhost:3001',
-          'https://29d0611ca9f9.ngrok-free.app', // ✅ ngrok 주소
-        ]
-      : process.env.ALLOWED_ORIGINS?.split(',') * || [];
-      */
   io = new Server(server, {
     cors: {
       origin: allowedOrigins,
@@ -34,12 +26,12 @@ export const initSocketServer = (server: HTTPServer) => {
     const token = socket.handshake.auth?.token;
 
     if (!token) {
-      return next(new Error('Authentication error: No token'));
+      return next(new Error('[Socket] Authentication error: No token'));
     }
 
     const user = await findUserByToken(token);
     if (!user) {
-      return next(new Error('유효하지 않은 토큰입니다.'));
+      return next(new Error('[Socket] 유효하지 않은 토큰입니다.'));
     }
     socket.data.user = {
       id: user.userId.toString(),
@@ -47,48 +39,39 @@ export const initSocketServer = (server: HTTPServer) => {
       userId: user.userId,
     }; // socket.data에 사용자 정보 저장
 
-    console.log('🔗유저: ', socket.data.user.id, ', ', socket.data.user.nickname);
+    console.log('🔗[Socket] 유저: ', socket.data.user.id, ', ', socket.data.user.nickname);
     next(); // 다음 미들웨어 또는 연결 승인
   });
 
-  const pubClient = new Redis({
-    host: process.env.REDIS_HOST,
-    port: Number(process.env.REDIS_PORT) || 6379,
-    password: process.env.REDIS_PASSWORD,
-  });
-
-  pubClient.on('error', err => {
-    console.error('Redis 연결 에러:', err);
+  // Redis 연결 테스트 (ping)
+  try {
+    const pong = await redis.ping();
+    console.log(`✅[Redis] Redis 연결 성공 (PING 응답: ${pong})`);
+  } catch (err) {
+    console.error('❌[Redis]Redis 연결 실패:', err);
     process.exit(1);
-  });
-
-  const subClient = pubClient.duplicate();
-  subClient.on('error', err => {
-    console.error('Redis 구독 클라이언트 에러:', err);
-  });
-
-  io.adapter(createAdapter(pubClient, subClient));
-  console.log('Redis adapter set');
+  }
 
   io.on('connection', socket => {
     const user = socket.data.user;
-    console.log('🚀 유저 접속:', user.nickname, ', 소캣: ', socket.id);
+    console.log('🚀[Socket] 유저 접속:', user.nickname, ', 소캣: ', socket.id);
     onlineUser(Number(user.id), socket.id);
 
     chatHandler(io!, socket);
 
-    socket.on('disconnect', () => {
-      offlineUser(socket.data.user.id, socket.id);
-      console.log('❌ 연결 해제:', socket.id);
+    socket.on('disconnect', async () => {
+      await offlineUser(Number(socket.data.user.id), socket.id);
+      console.log('❌[Socket] 연결 해제:', socket.id);
     });
   });
 
+  console.log('✅[Socket] Socket.io 서버 초기화 완료');
   return io;
 };
 
 export function getIO(): Server {
   if (!io) {
-    throw new Error('Socket.io not initialized');
+    throw new Error('[Socket] Socket.io not initialized');
   }
   return io;
 }
