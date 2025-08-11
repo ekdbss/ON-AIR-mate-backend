@@ -11,7 +11,7 @@ import { chatMessageType, MessageType } from '../dtos/messageDto.js';
 
 export default function chatHandler(io: Server, socket: Socket) {
   const user = socket.data.user;
-  const userId = user.id;
+  const userId = user.userId;
   console.log(`✅ 인증된 사용자 접속: ${user.nickname} (${userId}) , socketId: ${socket.id}`);
   /**
    * room 소캣 이벤트
@@ -171,8 +171,10 @@ export default function chatHandler(io: Server, socket: Socket) {
    */
 
   //1:1 DM 방 입장
-  socket.on('joinDM', async (receiverId: number) => {
+  socket.on('joinDM', async (data: { receiverId: number }) => {
     try {
+      const { receiverId } = data;
+
       if (!receiverId) {
         socket.emit('error', { type: 'joinDM', message: 'Required fields are missing.' });
         return;
@@ -187,7 +189,7 @@ export default function chatHandler(io: Server, socket: Socket) {
       console.log(`[Socket] ${userId}님이 ${dmId} dm 방에 입장`);
       socket.emit('success', { type: 'joinDM', message: 'DM 입장 성공' });
     } catch (err) {
-      console.error('[Socket] joinDM error:', err); // 서버 로그 확인용
+      console.error('[Socket] joinDM error:', err);
       socket.emit('error', { type: 'joinDM', message: 'dm 입장 실패' });
     }
   });

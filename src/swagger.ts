@@ -1,6 +1,8 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 const hostUrl =
-  process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://54.180.254.48'; // 환경변수로 관리
+  process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3000' // 개발: HTTP
+    : 'https://onairmate.duckdns.org';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
