@@ -11,7 +11,7 @@ import { chatMessageType, MessageType } from '../dtos/messageDto.js';
 
 export default function chatHandler(io: Server, socket: Socket) {
   const user = socket.data.user;
-  const userId = user.id;
+  const userId = user.userId;
   console.log(`✅ 인증된 사용자 접속: ${user.nickname} (${userId}) , socketId: ${socket.id}`);
   /**
    * room 소캣 이벤트
