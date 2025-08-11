@@ -1,6 +1,6 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 const hostUrl =
-  process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'http://54.180.254.48:3000'; // 환경변수로 관리
+  process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://54.180.254.48'; // 환경변수로 관리
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -35,6 +35,54 @@ const options: swaggerJsdoc.Options = {
         },
       },
       schemas: {
+        GetCollectionDto: {
+          type: 'object',
+          properties: {
+            collectionId: { type: 'integer', example: 123 },
+            title: { type: 'string', example: '컬렉션 제목' },
+            description: { type: 'string', example: '컬렉션 소개' },
+            bookmarkCount: { type: 'integer', example: 5 },
+            visibility: {
+              type: 'string',
+              enum: ['public', 'friends', 'private'],
+              example: 'private',
+            },
+            coverImage: { type: 'string', nullable: true, example: '커버이미지URL' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        GetCollectionDetailDto: {
+          type: 'object',
+          properties: {
+            collectionId: { type: 'integer', example: 123 },
+            title: { type: 'string', example: '컬렉션 제목' },
+            description: { type: 'string', example: '컬렉션 소개' },
+            bookmarkCount: { type: 'integer', example: 5 },
+            visibility: {
+              type: 'string',
+              enum: ['public', 'friends', 'private'],
+              example: 'private',
+            },
+            coverImage: { type: 'string', nullable: true, example: '커버이미지URL' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+            bookmarks: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  bookmarkId: { type: 'integer', example: 456 },
+                  videoTitle: { type: 'string', example: '비디오 제목' },
+                  videoThumbnail: { type: 'string', example: '비디오 썸네일 URL' },
+                  roomTitle: { type: 'string', example: '방 제목' },
+                  message: { type: 'string', example: '북마크 메시지' },
+                  createdAt: { type: 'string', format: 'date-time' },
+                },
+              },
+            },
+          },
+        },
         CreateCollectionDto: {
           type: 'object',
           properties: {

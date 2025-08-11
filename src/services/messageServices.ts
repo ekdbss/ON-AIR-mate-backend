@@ -1,7 +1,8 @@
 import { UserChatMessage } from '@prisma/client';
 import { SaveRoomMessageInput, SendDirectMessageDTO, RoomMessageDTO } from '../dtos/messageDto.js';
-
+import { createBookmarkFromSocket } from './bookmarkService.js';
 import { prisma } from '../lib/prisma.js';
+import AppError from '../middleware/errors/AppError.js';
 
 /**
  * room 채팅
@@ -48,6 +49,23 @@ export const saveRoomMessage = async ({
   content,
   messageType,
 }: SaveRoomMessageInput) => {
+  const room = await prisma.room.findUnique({
+    where: { roomId: roomId },
+  });
+
+  if (!room) {
+    throw new AppError('GENERAL_001', '유효한 방 ID가 필요합니다.');
+  }
+
+  if (!content || content.trim().length === 0) {
+    throw new AppError('CHAT_001');
+  }
+
+  if (messageType !== 'general' && messageType !== 'system') {
+    throw new AppError('CHAT_002', 'messageType은 general 이나 system이어야 합니다.');
+  }
+
+  //roomMaessage 생성.
   const message = await prisma.roomMessage.create({
     data: {
       roomId,
@@ -65,9 +83,23 @@ export const saveRoomMessage = async ({
     },
   });
 
+  //북마크면 북마크 db 생성
+  if (messageType === 'system') {
+    try {
+      await createBookmarkFromSocket(userId, roomId, content);
+    } catch (err) {
+      console.log(
+        '[Bookmark] 소켓 기반 북마크 생성 실패:',
+        err instanceof Error ? err.message : String(err),
+      );
+      throw new AppError('CHAT_003', '소켓 기반 북마크 생성 실패');
+    }
+  }
+
   const roomMessageDTO = {
     messageId: message.messageId, // Prisma 모델에서 메시지 PK
     userId: message.userId,
+    nickname: message.user.nickname,
     profileImage: message.user.profileImage ?? '',
     content: message.content,
     messageType: message.type,
