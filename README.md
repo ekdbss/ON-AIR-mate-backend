@@ -1,12 +1,10 @@
 ON-AIR-mate Backend
 소개
 ON-AIR-mate Backend(node.js) 레포지토리입니다.
-🚀 배포 정보 (운영 중)
-🌐 프로덕션 서버
 
-서버 URL: https://54.180.254.48
-Swagger URL: https://54.180.254.48/api-docs
-헬스체크: https://54.180.254.48/health
+- 서버 URL: https://onairmate.duckdns.org/
+- Swagger URL: https://onairmate.duckdns.org/
+- 헬스체크: https://onairmate.duckdns.org/health
 상태: 🟢 ONLINE (24시간 운영)
 보안: 🔒 HTTPS 활성화 (자체 서명 인증서)
 
