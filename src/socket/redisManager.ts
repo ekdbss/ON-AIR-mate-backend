@@ -36,8 +36,8 @@ export const joinRoom = async (roomId: number, userId: number, socketId: string)
   console.log('[Redis] joinRoom 이벤트 처리');
   const saddRes1 = await redis.sadd(ROOM_PARTICIPANTS_KEY(roomId), userId);
   const incrRes = await redis.incr(ROOM_PARTICIPANTS_COUNT_KEY(roomId));
-  const setRes1 = await redis.set(USER_SOCKET_KEY(userId), socketId, 'NX'); // NX = Only if not exists
-  const setRes2 = await redis.set(SOCKET_USER_KEY(socketId), userId.toString(), 'NX');
+  const setRes1 = await redis.set(USER_SOCKET_KEY(userId), socketId);
+  const setRes2 = await redis.set(SOCKET_USER_KEY(socketId), userId.toString());
   const saddRes2 = await redis.sadd(USER_ROOMS_KEY(userId), roomId.toString());
   // 검증: sadd/incr 결과가 0이나 null이거나, set 결과가 null이면 실패로 판단
   if (saddRes1 === 0 && incrRes <= 0) {
