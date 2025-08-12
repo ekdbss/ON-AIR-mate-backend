@@ -1,4 +1,6 @@
 import { prisma } from '../lib/prisma.js';
+import AppError from '../middleware/errors/AppError.js';
+import { tryParseBookmarkMessage } from '../utils/parseBookmark.js';
 
 // 1. 북마크 생성 서비스
 export const createBookmark = async (
@@ -15,6 +17,19 @@ export const createBookmark = async (
       timeline,
     },
   });
+};
+
+//1-1. 소캣에서 북마크 생성하기
+export const createBookmarkFromSocket = async (userId: number, roomId: number, message: string) => {
+  const result = tryParseBookmarkMessage(message);
+  if (!result) {
+    throw new AppError('CHAT_003', '메시지에서 유효한 타임라인을 찾을 수 없습니다.');
+  }
+  const { timeline, content } = result;
+  console.log(`북마크 파싱 성공: ${timeline}`);
+  console.log(`메시지: ${content}`);
+
+  return await createBookmark(userId, roomId, content, timeline);
 };
 
 // 2. 북마크 목록 조회 서비스
@@ -57,6 +72,7 @@ export const getBookmarks = async (
     videoId: bookmark.room?.video?.videoId ?? null,
     videoTitle: bookmark.room?.video?.title,
     videoThumbnail: bookmark.room?.video?.thumbnail,
+    roomName: bookmark.room?.roomName ?? null,
     message: bookmark.content,
     timeline: bookmark.timeline,
     createdAt: bookmark.createdAt,
@@ -109,7 +125,7 @@ export const createRoomFromBookmark = async (
   bookmarkId: number,
   roomTitle: string,
   maxParticipants: number,
-  isPublic: boolean,
+  isPrivate: boolean,
   startFrom: 'BOOKMARK' | 'BEGINNING',
 ) => {
   // 입력 값 검증
@@ -147,7 +163,7 @@ export const createRoomFromBookmark = async (
     data: {
       roomName: roomTitle,
       maxParticipants,
-      isPublic,
+      isPublic: !isPrivate,
       videoId: bookmark.room.videoId,
       hostId: userId,
       startType: startFrom,

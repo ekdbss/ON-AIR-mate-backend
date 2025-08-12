@@ -1,7 +1,42 @@
-import { UserChatMessage } from '@prisma/client';
+import { ChatMessageType } from '@prisma/client';
 import { SaveRoomMessageInput, SendDirectMessageDTO, RoomMessageDTO } from '../dtos/messageDto.js';
-
+import { createBookmarkFromSocket } from './bookmarkService.js';
 import { prisma } from '../lib/prisma.js';
+import AppError from '../middleware/errors/AppError.js';
+
+interface BaseMessage {
+  messageId: number;
+  senderId: number;
+  receiverId: number;
+  content: string | null;
+  messageType: ChatMessageType;
+  timestamp: string;
+}
+
+interface CollectionMessage extends BaseMessage {
+  collection: {
+    collectionId: number;
+    title: string;
+    description: string | null;
+    bookmarkCount: number;
+    visibility: string;
+    coverImage: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+}
+
+interface RoomMessage extends BaseMessage {
+  room: {
+    roomId: number;
+    roomName: string;
+    video: {
+      title: string;
+    };
+  };
+}
+
+type DirectMessage = BaseMessage | CollectionMessage | RoomMessage;
 
 /**
  * room 채팅
@@ -48,6 +83,23 @@ export const saveRoomMessage = async ({
   content,
   messageType,
 }: SaveRoomMessageInput) => {
+  const room = await prisma.room.findUnique({
+    where: { roomId: roomId },
+  });
+
+  if (!room) {
+    throw new AppError('GENERAL_001', '유효한 방 ID가 필요합니다.');
+  }
+
+  if (!content || content.trim().length === 0) {
+    throw new AppError('CHAT_001');
+  }
+
+  if (messageType !== 'general' && messageType !== 'system') {
+    throw new AppError('CHAT_002', 'messageType은 general 이나 system이어야 합니다.');
+  }
+
+  //roomMaessage 생성.
   const message = await prisma.roomMessage.create({
     data: {
       roomId,
@@ -65,9 +117,23 @@ export const saveRoomMessage = async ({
     },
   });
 
+  //북마크면 북마크 db 생성
+  if (messageType === 'system') {
+    try {
+      await createBookmarkFromSocket(userId, roomId, content);
+    } catch (err) {
+      console.log(
+        '[Bookmark] 소켓 기반 북마크 생성 실패:',
+        err instanceof Error ? err.message : String(err),
+      );
+      throw new AppError('CHAT_003', '소켓 기반 북마크 생성 실패');
+    }
+  }
+
   const roomMessageDTO = {
     messageId: message.messageId, // Prisma 모델에서 메시지 PK
     userId: message.userId,
+    nickname: message.user.nickname,
     profileImage: message.user.profileImage ?? '',
     content: message.content,
     messageType: message.type,
@@ -163,12 +229,71 @@ export const getDirectMessages = async (userId: number, receiverId: number) => {
     orderBy: { createdAt: 'desc' },
   });
 
-  return messages.reverse().map((msg: UserChatMessage) => ({
-    messageId: msg.messageId,
-    senderId: msg.userId,
-    receiverId: receiverId,
-    content: msg.content,
-    messageType: msg.type,
-    timestamp: msg.createdAt.toISOString(),
-  }));
+  const result: DirectMessage[] = [];
+
+  for (const msg of messages.reverse()) {
+    let base: DirectMessage = {
+      messageId: msg.messageId,
+      senderId: msg.userId,
+      receiverId,
+      content: msg.content,
+      messageType: msg.type,
+      timestamp: msg.createdAt.toISOString(),
+    };
+
+    // 메시지 타입에 따라 추가 정보 붙이기
+    if (msg.type === 'collectionShare' && msg.content) {
+      try {
+        const contentObj = JSON.parse(msg.content);
+        const collectionId = contentObj.collectionId;
+        const collection = await prisma.collection.findUnique({
+          where: { collectionId },
+          select: {
+            collectionId: true,
+            title: true,
+            description: true,
+            bookmarkCount: true,
+            visibility: true,
+            coverImage: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        });
+        if (collection) {
+          base.content = contentObj.message;
+          base = { ...base, collection };
+        }
+      } catch {
+        console.log('[messagType: collectionShare] parsing error or no room found');
+      }
+    } else if (msg.type === 'roomInvite' && msg.content) {
+      try {
+        const contentObj = JSON.parse(msg.content);
+        const roomId = contentObj.roomId;
+        const room = await prisma.room.findUnique({
+          where: { roomId },
+          select: {
+            roomId: true,
+            roomName: true,
+            video: {
+              select: {
+                title: true,
+              },
+            },
+          },
+        });
+        if (room) {
+          base.content = contentObj.message;
+          base = { ...base, room };
+        }
+      } catch {
+        // parsing error or no room found
+        console.log('[messagType: roomInvite] parsing error or no room found');
+      }
+    }
+    // general 등 다른 타입은 그대로
+
+    result.push(base);
+  }
+  return result;
 };
