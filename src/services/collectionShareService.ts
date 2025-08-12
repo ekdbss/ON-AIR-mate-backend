@@ -1,7 +1,7 @@
 import { prisma } from '../lib/prisma.js';
 import { saveDirectMessage, getChatRoom } from './messageServices.js';
 import { getIO } from '../socket/index.js';
-import redis from '../redis';
+import redis from '../redis.js';
 import { USER_SOCKET_KEY } from '../socket/redisManager.js';
 import AppError from '../middleware/errors/AppError.js';
 

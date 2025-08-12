@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { shareCollectionService, copyCollectionService } from '../services/shareCollectionService';
+import {
+  shareCollectionService,
+  copyCollectionService,
+} from '../services/collectionShareService.js';
 import AppError from '../middleware/errors/AppError.js';
 import { sendSuccess } from '../utils/response.js';
 interface ShareCollectionBody {

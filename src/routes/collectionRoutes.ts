@@ -3,7 +3,7 @@ import * as collectionController from '../controllers/collectionController.js';
 import {
   shareCollectionController,
   copyCollectionController,
-} from '../controllers/shareCollectionController.js';
+} from '../controllers/collectionShareController.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = Router();
