@@ -102,10 +102,13 @@ export const getParticipants = async (roomId: number) => {
 
 // 참가자 존재 확인
 export const checkParticipant = async (roomId: number, userId: number) => {
-  const participant = await prisma.roomParticipant.findUnique({
-    where: { unique_participant: { roomId, userId } },
+  const participant = await prisma.roomParticipant.findFirst({
+    where: {
+      roomId,
+      userId,
+      left_at: null,
+    },
   });
-
   //return participant !== null && participant.left === null;
   return participant !== null;
 };
@@ -126,6 +129,8 @@ export const addParticipant = async (roomId: number, participant: Participant) =
       roomId,
       userId: participant.userId,
       role: 'participant',
+      left_at: null,
+      lastJoinedAt: new Date(),
     },
   });
 
@@ -139,14 +144,13 @@ export const removeParticipant = async (roomId: number, userId: number) => {
   });
   if (!room) return null;
 
-  //roomParticipate db update
-  await prisma.$transaction([
-    prisma.roomParticipant.delete({
-      where: {
-        unique_participant: { roomId, userId },
-      },
-    }),
-  ]);
+  //roomParticipate db update ->left_at 넣기
+  await prisma.roomParticipant.update({
+    where: { participantId: userId },
+    data: {
+      left_at: new Date(), // 현재 시간 기록
+    },
+  });
 
   return room;
 };
