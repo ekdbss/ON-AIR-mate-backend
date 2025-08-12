@@ -10,6 +10,6 @@ export interface MoveBookmarkDto {
 export interface CreateRoomFromBookmarkDto {
   roomTitle: string;
   maxParticipants: number;
-  isPublic: boolean;
+  isPrivate: boolean;
   startFrom: 'BOOKMARK' | 'BEGINNING';
 }

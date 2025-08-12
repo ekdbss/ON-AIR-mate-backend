@@ -1,5 +1,9 @@
 import { Router } from 'express';
 import * as collectionController from '../controllers/collectionController.js';
+import {
+  shareCollectionController,
+  copyCollectionController,
+} from '../controllers/collectionShareController.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = Router();
@@ -99,5 +103,114 @@ router.get('/', requireAuth, collectionController.getCollections);
  *         description: 컬렉션을 찾을 수 없음
  */
 router.get('/:collectionId', requireAuth, collectionController.getCollectionDetail);
+
+/**
+ * 컬렉션 공유하기
+ */
+/**
+ * @swagger
+ * /api/collections/{collectionId}/share:
+ *   post:
+ *     summary: 컬렉션을 친구에게 공유
+ *     description: 지정한 컬렉션을 여러 친구에게 공유합니다.
+ *     tags:
+ *       - Collections
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: collectionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 공유할 컬렉션 ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               friendIds:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *             required:
+ *               - friendIds
+ *             example:
+ *               friendIds: [456, 789]
+ *     responses:
+ *       200:
+ *         description: 컬렉션이 성공적으로 공유됨
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "컬렉션이 공유되었습니다."
+ *       400:
+ *         description: '잘못된 요청 (예: friendIds 누락)'
+ *       401:
+ *         description: '인증 실패 (토큰 없음 또는 만료)'
+ *       404:
+ *         description: '컬렉션을 찾을 수 없음'
+ *       500:
+ *         description: '서버 내부 오류'
+ */
+router.post('/:collectionId/share', requireAuth, shareCollectionController);
+
+/**
+ * 친구 컬렉션 가져오기
+ */
+/**
+ * @swagger
+ * /api/collections/{collectionId}/copy:
+ *   post:
+ *     summary: 친구의 컬렉션을 내 라운지로 가져오기
+ *     description: 친구가 공유한 컬렉션을 내 컬렉션 라운지로 복사합니다.
+ *     tags:
+ *       - Collections
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: collectionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 복사할 컬렉션 ID
+ *     responses:
+ *       200:
+ *         description: 컬렉션 복사 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     collectionId:
+ *                       type: integer
+ *                       example: 125
+ *                     message:
+ *                       type: string
+ *                       example: 컬렉션을 가져왔습니다.
+ *       401:
+ *         description: '인증 실패 (토큰 없음 또는 만료)'
+ *       404:
+ *         description: '컬렉션을 찾을 수 없음'
+ *       500:
+ *         description: '서버 내부 오류'
+ */
+router.post('/:collectionId/copy', requireAuth, copyCollectionController);
 
 export default router;

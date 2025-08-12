@@ -141,7 +141,7 @@ export const createRoomFromBookmark = async (req: Request, res: Response, next: 
   try {
     const userId = req.user?.userId;
     const bookmarkId = Number(req.params.bookmarkId);
-    const { roomTitle, maxParticipants, isPublic, startFrom } = req.body;
+    const { roomTitle, maxParticipants, isPrivate, startFrom } = req.body;
 
     if (userId === undefined) {
       return sendError(res, '유저 정보가 없습니다.', 401);
@@ -159,7 +159,7 @@ export const createRoomFromBookmark = async (req: Request, res: Response, next: 
       return sendError(res, '최대 참가자 수는 8, 15, 30 중 하나여야 합니다.', 400);
     }
 
-    if (typeof isPublic !== 'boolean') {
+    if (typeof isPrivate !== 'boolean') {
       return sendError(res, '방 공개 여부는 불린 타입이어야 합니다.', 400);
     }
 
@@ -168,7 +168,7 @@ export const createRoomFromBookmark = async (req: Request, res: Response, next: 
       bookmarkId,
       roomTitle,
       maxParticipants,
-      isPublic,
+      isPrivate,
       startFrom ?? 'BOOKMARK',
     );
 
