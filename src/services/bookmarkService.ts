@@ -125,7 +125,7 @@ export const createRoomFromBookmark = async (
   bookmarkId: number,
   roomTitle: string,
   maxParticipants: number,
-  isPublic: boolean,
+  isPrivate: boolean,
   startFrom: 'BOOKMARK' | 'BEGINNING',
 ) => {
   // 입력 값 검증
@@ -163,7 +163,7 @@ export const createRoomFromBookmark = async (
     data: {
       roomName: roomTitle,
       maxParticipants,
-      isPublic,
+      isPublic: !isPrivate,
       videoId: bookmark.room.videoId,
       hostId: userId,
       startType: startFrom,

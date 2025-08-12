@@ -257,7 +257,7 @@ router.put('/:bookmarkId/collection', requireAuth, moveBookmarkToCollection);
  *                 type: string
  *               maxParticipants:
  *                 type: number
- *               isPublic:
+ *               isPrivate:
  *                 type: boolean
  *               startFrom:
  *                 type: string
@@ -265,7 +265,7 @@ router.put('/:bookmarkId/collection', requireAuth, moveBookmarkToCollection);
  *             required:
  *               - roomTitle
  *               - maxParticipants
- *               - isPublic
+ *               - isPrivate
  *               - startFrom
  *     responses:
  *       200:
