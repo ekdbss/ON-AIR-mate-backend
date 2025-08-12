@@ -22,7 +22,7 @@ export default function chatHandler(io: Server, socket: Socket) {
     try {
       const { roomId, nickname } = data;
       if (!roomId || !nickname) {
-        socket.emit('error', { message: 'roomId and nickname required' });
+        socket.emit('error', { type: 'joinRoom', message: 'roomId and nickname required' });
         return;
       }
       //입장
@@ -38,6 +38,7 @@ export default function chatHandler(io: Server, socket: Socket) {
         count: io.sockets.adapter.rooms.get(roomId.toString())?.size || 0,
       });
       console.log(`[Socket] ${nickname}님이 ${roomId} 방에 입장`);
+
       socket.emit('success', { type: 'joinRoom', message: '방 참여 성공' });
     } catch (error) {
       console.log('[Socket] joinRoom 소캣 통신에러:', error);
@@ -69,6 +70,7 @@ export default function chatHandler(io: Server, socket: Socket) {
       //redis
       const res = await enterRoom(Number(userId), socket.id);
       console.log('[Socket] enterRoom 이벤트 성공, redis: ', res);
+
       socket.emit('success', { type: 'enterRoom', message: '방 입장 성공' });
     } catch (error) {
       console.log('[Socket] enterRoom 소캣 통신에러:', error);
@@ -118,6 +120,7 @@ export default function chatHandler(io: Server, socket: Socket) {
         //메시지 전송
         io.to(roomId.toString()).emit('receiveRoomMessage', { data: message });
         console.log(`[Socket] 메시지: ${message}`);
+
         socket.emit('success', { type: 'sendRoomMessage', message: '방 채팅 성공' });
       } catch (error) {
         console.log('[Socket] sendRoomMessage 소캣 통신에러:', error);
@@ -139,12 +142,14 @@ export default function chatHandler(io: Server, socket: Socket) {
       const updatedRoom = await roomInfoService.getRoomInfoById(roomId);
 
       //변경된 설정 브로드캐스트
-      io.to(roomId.toString()).emit('roomSettingsUpdated', { data: updatedRoom });
+      io.to(roomId.toString()).emit('roomSettingsUpdated', { updatedRoom });
 
       console.log(`[ROOM ${roomId}] Settings updated by owner ${userId}`);
+
+      socket.emit('success', { type: 'updateRoomSettings', message: '방 설정 성공' });
     } catch (error) {
       console.log('[Socket] sendRoomMessage 소캣 통신에러:', error);
-      socket.emit('error', { type: 'updateRoomSettings', message: '방 채팅 실패' });
+      socket.emit('error', { type: 'updateRoomSettings', message: '방 설정 실패' });
     }
   });
 
@@ -154,6 +159,7 @@ export default function chatHandler(io: Server, socket: Socket) {
       await leaveRoom(roomId, Number(userId));
       socket.leave(roomId.toString());
       io.to(roomId.toString()).emit('userLeft', { userId, socketId: socket.id });
+
       socket.emit('success', { type: 'leaveRoom', message: '방 퇴장 성공' });
     } catch (err) {
       console.error('[Socket] leaveRoom error:', err); // 서버 로그 확인용
@@ -197,15 +203,10 @@ export default function chatHandler(io: Server, socket: Socket) {
   // 1:1 DM 보내기
   socket.on(
     'sendDirectMessage',
-    async (data: {
-      receiverId: number;
-      fromNickname: string;
-      content: string;
-      messageType: string;
-    }) => {
+    async (data: { receiverId: number; content: string; messageType: string }) => {
       try {
-        const { receiverId, fromNickname, content, messageType } = data;
-        if (!receiverId || !content || !fromNickname || !messageType) {
+        const { receiverId, content, messageType } = data;
+        if (!receiverId || !content || !messageType) {
           socket.emit('error', {
             type: 'sendDirectMessage',
             message: 'Required fields are missing.',
@@ -229,10 +230,9 @@ export default function chatHandler(io: Server, socket: Socket) {
         });
 
         //전송
-        socket
-          .to(dmId.toString())
-          .emit('receiveDirectMessage', { sender: fromNickname, message: message });
-        console.log(`[Socket] DM ${fromNickname} -> ${dmId}: ${content}`);
+        socket.to(dmId.toString()).emit('receiveDirectMessage', { data: message });
+        console.log(`[Socket] DM ${userId} -> ${dmId}: ${content}`);
+
         socket.emit('success', { type: 'sendDirectMessage', message: 'DM 채팅 성공' });
       } catch (err) {
         console.error('[Socket] sendDirectMessage error:', err); // 서버 로그 확인용
@@ -253,6 +253,7 @@ export default function chatHandler(io: Server, socket: Socket) {
       const dmId = dmRoom.chatId;
       socket.leave(dmId.toString());
       console.log(`[Socket] 친구 방 삭제 - ${dmId} 삭제 : ${userId1}, ${userId2}`);
+
       socket.emit('success', { type: 'unFriend', message: '친구 해제 성공' });
     } catch (err) {
       console.error('[Socket] unFriend error:', err); // 서버 로그 확인용
