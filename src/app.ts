@@ -20,6 +20,7 @@ import chatDirectRoutes from './routes/chatDirectRoute.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import collectionRoute from './routes/collectionRoutes.js';
 import sharedCollectionRoute from './routes/sharedCollectionRoute.js';
+import blockRoutes from './routes/blockRoute.js';
 dotenv.config();
 
 const app: Express = express();
@@ -61,7 +62,6 @@ const corsOptions = {
     origin: string | undefined,
     callback: (err: Error | null, allow?: boolean) => void,
   ) {
-    console.log('연결 origin:', origin);
     // 개발 환경에서는 모든 origin 허용
     if (process.env.NODE_ENV === 'development') {
       callback(null, true);
@@ -78,8 +78,6 @@ const corsOptions = {
       'http://localhost:3000', // 로컬 개발용
       'http://localhost:3001', // 로컬 개발용
     ];
-    console.log('배포 주소', address);
-    console.log('연결 origin:', origin);
 
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -168,6 +166,7 @@ app.use('/api/shared-collections', sharedCollectionRoute);
 app.use('/api/friends', friendRoutes);
 app.use('/api/ai', aiSummaryRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/blocks', blockRoutes);
 
 // 404 에러 핸들링
 app.use((req: Request, res: Response, next: NextFunction) => {
