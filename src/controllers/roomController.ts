@@ -26,7 +26,7 @@ export const createRoom = async (req: Request, res: Response, next: NextFunction
     const newRoom = await roomService.createRoom({
       hostId,
       roomName,
-      isPrivate: !isPrivate,
+      isPrivate: isPrivate,
       maxParticipants,
       videoId,
     });
