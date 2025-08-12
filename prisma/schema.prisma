@@ -122,6 +122,7 @@ model Room {
   messages            RoomMessage[]
   participants        RoomParticipant[]
   host                User              @relation("HostUser", fields: [hostId], references: [userId], onDelete: Cascade)
+  video               YoutubeVideo      @relation("VideoOnRoom", fields: [videoId], references: [videoId])
 
   @@index([hostId], map: "rooms_host_id_fkey")
   @@index([videoId], map: "rooms_video_id_fkey")
@@ -224,6 +225,7 @@ model Collection {
   originalCollectionId Int?                 @map("original_collection_id")
   createdAt            DateTime             @default(now()) @map("created_at")
   coverImage           String?              @map("cover_image") @db.VarChar(500)
+  order                Int?                 @default(1) @map("order") // 순서 필드 (기본값 1)
   updatedAt            DateTime             @updatedAt @map("updated_at")
   bookmarks            Bookmark[]
   originalCollection   Collection?          @relation("CollectionCopy", fields: [originalCollectionId], references: [collectionId])
@@ -304,6 +306,7 @@ model YoutubeVideo {
   duration    String?   @db.VarChar(20)
   uploadedAt  DateTime? @map("uploaded_at")
   createdAt   DateTime  @default(now()) @map("created_at")
+  rooms       Room[]    @relation("VideoOnRoom")
 
   @@map("youtube_videos")
 }
