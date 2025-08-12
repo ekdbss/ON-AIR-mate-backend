@@ -76,15 +76,15 @@ model Friendship {
 }
 
 model UserBlock {
-  blockId       Int      @id @default(autoincrement()) @map("block_id")
-  blockerUserId Int      @map("blocker_user_id")
-  blockedUserId Int      @map("blocked_user_id")
-  blockedAt     DateTime @default(now()) @map("blocked_at")
-  isActive      Boolean  @default(true) @map("is_active")
-  blocked       User     @relation("BlockedUser", fields: [blockedUserId], references: [userId], onDelete: Cascade)
-  blocker       User     @relation("BlockerUser", fields: [blockerUserId], references: [userId], onDelete: Cascade)
-  customReason  String?     
-  reportReasons UserBlockReason[] 
+  blockId       Int               @id @default(autoincrement()) @map("block_id")
+  blockerUserId Int               @map("blocker_user_id")
+  blockedUserId Int               @map("blocked_user_id")
+  blockedAt     DateTime          @default(now()) @map("blocked_at")
+  isActive      Boolean           @default(true) @map("is_active")
+  customReason  String?
+  reportReasons UserBlockReason[]
+  blocked       User              @relation("BlockedUser", fields: [blockedUserId], references: [userId], onDelete: Cascade)
+  blocker       User              @relation("BlockerUser", fields: [blockerUserId], references: [userId], onDelete: Cascade)
 
   @@unique([blockerUserId, blockedUserId], name: "unique_block")
   @@index([blockedUserId], map: "user_blocks_blocked_user_id_fkey")
@@ -92,11 +92,12 @@ model UserBlock {
 }
 
 model UserBlockReason {
-  userBlockReasonId        Int           @id @default(autoincrement())@map("user_block_reason_id")
-  block     UserBlock     @relation(fields: [blockId], references: [blockId], onDelete: Cascade)
-  blockId   Int           @map("block_id")
-  reason    reportReason
+  userBlockReasonId Int          @id @default(autoincrement()) @map("user_block_reason_id")
+  blockId           Int          @map("block_id")
+  reason            reportReason
+  block             UserBlock    @relation(fields: [blockId], references: [blockId], onDelete: Cascade)
 
+  @@index([blockId], map: "user_block_reasons_block_id_fkey")
   @@map("user_block_reasons")
 }
 
@@ -224,6 +225,7 @@ model Collection {
   originalCollectionId Int?                 @map("original_collection_id")
   createdAt            DateTime             @default(now()) @map("created_at")
   coverImage           String?              @map("cover_image") @db.VarChar(500)
+  order                Int?                 @default(1) @map("order") // 순서 필드 (기본값 1)
   updatedAt            DateTime             @updatedAt @map("updated_at")
   bookmarks            Bookmark[]
   originalCollection   Collection?          @relation("CollectionCopy", fields: [originalCollectionId], references: [collectionId])

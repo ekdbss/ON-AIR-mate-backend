@@ -110,6 +110,10 @@ router.post('/', requireAuth, createBookmark);
  *                           videoThumbnail:
  *                             type: string
  *                             example: "https://img.youtube.com/vi/abc123xyz/mqdefault.jpg"
+ *                           roomName:
+ *                             type: string
+ *                             example: "야구 경기 3회 초 하이라이트"
+ *                             nullable: true
  *                           message:
  *                             type: string
  *                             example: "00:23 병살 플레이"
@@ -142,6 +146,10 @@ router.post('/', requireAuth, createBookmark);
  *                           videoThumbnail:
  *                             type: string
  *                             example: "https://img.youtube.com/vi/def456uvw/mqdefault.jpg"
+ *                           roomName:
+ *                             type: string
+ *                             example: "야구 경기 3회 초 하이라이트"
+ *                             nullable: true
  *                           message:
  *                             type: string
  *                             example: "01:02 감동적인 장면"
@@ -249,7 +257,7 @@ router.put('/:bookmarkId/collection', requireAuth, moveBookmarkToCollection);
  *                 type: string
  *               maxParticipants:
  *                 type: number
- *               isPublic:
+ *               isPrivate:
  *                 type: boolean
  *               startFrom:
  *                 type: string
@@ -257,7 +265,7 @@ router.put('/:bookmarkId/collection', requireAuth, moveBookmarkToCollection);
  *             required:
  *               - roomTitle
  *               - maxParticipants
- *               - isPublic
+ *               - isPrivate
  *               - startFrom
  *     responses:
  *       200:
