@@ -42,7 +42,7 @@ export default function chatHandler(io: Server, socket: Socket) {
       });
       console.log(`[Socket] ${nickname}님이 ${roomId} 방에 입장`);
 
-      socket.emit('success', {
+      socket.emit('roomEnterSuccess', {
         type: 'joinRoom',
         message: '방 참여 성공',
         user: { nickname: user.nickname, role: role },
@@ -81,7 +81,7 @@ export default function chatHandler(io: Server, socket: Socket) {
       const res = await enterRoom(Number(userId), socket.id);
       console.log('[Socket] enterRoom 이벤트 성공, redis: ', res);
 
-      socket.emit('success', {
+      socket.emit('roomEnterSuccess', {
         type: 'enterRoom',
         message: '방 입장 성공',
         user: { nickname: user.nickname, role: role },
