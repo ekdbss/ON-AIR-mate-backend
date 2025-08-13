@@ -57,7 +57,8 @@ export const joinRoom = async (req: Request, res: Response, next: NextFunction) 
     }
 
     //방 참가자 목록에 추가
-    await roomService.addParticipant(roomId, { userId, nickname });
+    const respp = await roomService.addParticipant(roomId, { userId, nickname });
+    console.log('참가자 참가: ', respp);
     //성공 응답
     sendSuccess(res, '방에 입장 가능합니다.', 201);
   } catch (error) {

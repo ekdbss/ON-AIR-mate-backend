@@ -77,7 +77,11 @@ export const leaveRoom = async (roomId: number, userId: number) => {
   console.log('[Redis] leaveRoom 이벤트 처리');
   const removed = await redis.srem(ROOM_PARTICIPANTS_KEY(roomId), userId);
   if (removed === 1) await redis.decr(ROOM_PARTICIPANTS_COUNT_KEY(roomId));
-  await redis.srem(USER_ROOMS_KEY(userId), roomId.toString());
+  const remove2 = await redis.srem(USER_ROOMS_KEY(userId), roomId.toString());
+  return {
+    removeParticipantFromRoom: removed,
+    removeRoomFromUser: remove2,
+  };
 };
 
 export const getRoomSize = async (roomId: number): Promise<number> => {
@@ -102,5 +106,6 @@ export const isParticipant = async (roomId: number, userId: number): Promise<boo
   console.log('[Redis] isParticipant 이벤트 처리');
   const key = ROOM_PARTICIPANTS_KEY(roomId);
   const result = await redis.sismember(key, userId);
+  console.log('[Redis] 참가자 확인 로그:', key, ', ', result);
   return result === 1;
 };

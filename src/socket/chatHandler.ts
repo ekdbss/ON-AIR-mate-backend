@@ -57,6 +57,7 @@ export default function chatHandler(io: Server, socket: Socket) {
       }
 
       const isIn = await isParticipant(Number(roomId), Number(userId));
+      console.log('[redis] 참가자 확인: ', isIn);
       if (!isIn) {
         socket.emit('error', {
           type: 'enterRoom',
@@ -162,7 +163,8 @@ export default function chatHandler(io: Server, socket: Socket) {
       //퇴장 db 처리
       const leaveDB = await removeParticipant(Number(parsedRoomId), userId);
       console.log('leaveRoom 디비 처리:', leaveDB);
-      await leaveRoom(Number(parsedRoomId), Number(userId));
+      const leaveres = await leaveRoom(Number(parsedRoomId), Number(userId));
+      console.log('[Socket] leaveRoom Redis 처리: ', leaveres);
       socket.leave(roomId.toString());
       io.to(roomId.toString()).emit('userLeft', { userId, socketId: socket.id });
 

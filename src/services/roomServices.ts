@@ -124,7 +124,34 @@ export const addParticipant = async (roomId: number, participant: Participant) =
   }
 
   //roomParicipant DB 등록
-  await prisma.roomParticipant.create({
+  //한번 탈퇴했던 방인지 확인 - roomParticant에 left_at이 null 이 아님
+  //아예 처음이면 create
+  const existingParticipant = await prisma.roomParticipant.findUnique({
+    where: {
+      unique_participant: {
+        roomId: roomId,
+        userId: participant.userId,
+      },
+    },
+  });
+
+  if (existingParticipant) {
+    if (existingParticipant.left_at === null) {
+      // 이미 참가 중
+      console.log('참가자 확인 에러: 이미 참여중임.');
+      throw new Error('이미 이 방에 참가 중입니다.');
+    } else {
+      // 재참여 → left_at 초기화
+      return await prisma.roomParticipant.update({
+        where: { participantId: existingParticipant.participantId },
+        data: {
+          left_at: null,
+          lastJoinedAt: new Date(),
+        },
+      });
+    }
+  }
+  return await prisma.roomParticipant.create({
     data: {
       roomId,
       userId: participant.userId,
@@ -133,8 +160,6 @@ export const addParticipant = async (roomId: number, participant: Participant) =
       lastJoinedAt: new Date(),
     },
   });
-
-  return room;
 };
 
 //참가자 방 탈퇴
@@ -145,13 +170,45 @@ export const removeParticipant = async (roomId: number, userId: number) => {
   });
   if (!room) return null;
 
-  //roomParticipate db update ->left_at 넣기
-  await prisma.roomParticipant.update({
-    where: { participantId: userId },
-    data: {
-      left_at: new Date(), // 현재 시간 기록
+  //host인지 확인 -> host이면 모든 참가자 다 탈퇴시키기.
+  //그냥 participant면 -> 유저만 탈퇴시키기
+  // 참가자 정보 조회 (roomId + userId)
+  const participant = await prisma.roomParticipant.findUnique({
+    where: {
+      unique_participant: {
+        roomId: roomId,
+        userId,
+      },
     },
   });
 
-  return room;
+  if (!participant) {
+    console.warn(`[방 탈퇴] 해당 유저(${userId})는 방(${roomId}) 참가자가 아님`);
+    return null;
+  }
+  //호스트인 경우
+  if (participant.role === 'host') {
+    console.log(`[방 탈퇴] 호스트(${userId}) → 모든 참가자 탈퇴 + 방 삭제`);
+
+    // 모든 참가자 left_at 업데이트
+    await prisma.roomParticipant.updateMany({
+      where: { roomId: roomId, left_at: null },
+      data: { left_at: new Date() },
+    });
+
+    // 방 삭제 (Cascade 설정이므로 메시지/참가자 같이 삭제)
+    await prisma.room.delete({
+      where: { roomId: roomId },
+    });
+
+    return { message: '방이 삭제되었습니다(호스트 탈퇴).', participant: 'everyone' };
+  }
+
+  // 2. 일반 참가자인 경우 → 본인만 탈퇴
+  const updatedParticipant = await prisma.roomParticipant.update({
+    where: { participantId: participant.participantId },
+    data: { left_at: new Date() },
+  });
+
+  return { message: '방이 삭제되었습니다(호스트 탈퇴).', participant: updatedParticipant };
 };
