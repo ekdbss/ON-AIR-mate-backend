@@ -1,7 +1,6 @@
 import { RoomParticipant } from '@prisma/client';
 import { Participant, createNewRoom } from '../dtos/roomDto.js';
 import { findUserById } from './authServices.js';
-
 import { prisma } from '../lib/prisma.js';
 
 /**

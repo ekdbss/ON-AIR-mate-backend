@@ -1,5 +1,16 @@
 import { Server, Socket } from 'socket.io';
-import { joinRoom, enterRoom, leaveRoom, isParticipant, offlineUser } from './redisManager.js';
+import { prisma } from '../lib/prisma.js';
+import {
+  joinRoom,
+  enterRoom,
+  leaveRoom,
+  isParticipant,
+  offlineUser,
+  setRoomVideoState,
+  updateRoomVideoTime,
+  getRoomVideoState,
+  deleteRoomVideoState,
+} from './redisManager.js';
 import {
   saveRoomMessage,
   saveDirectMessage,
@@ -52,6 +63,44 @@ export default function chatHandler(io: Server, socket: Socket) {
           user: { nickname: user.nickname, role: role },
         },
       });
+
+      /**
+       * 방 영상 정보 동기화
+       */
+      //방장일 경우
+      //북마크로 방 생성일 경우 -> room startTime으로 시작
+      const broom = await prisma.room.findUnique({
+        where: { roomId },
+      });
+
+      if (role === 'host') {
+        await setRoomVideoState(roomId, 'playing', broom?.startTime ?? 0);
+        io.to(roomId.toString()).emit('video:play', {
+          roomId,
+          currentTime: 0,
+          updatedAt: Date.now(),
+        });
+        console.log('[Socket] [host] video:play 소캣 이벤트 전송 완료 ->', user.nickname);
+      }
+      //참가자일경우
+      else {
+        const videoState = await getRoomVideoState(roomId);
+        if (videoState) {
+          let syncTime = videoState.time;
+          if (videoState.status === 'playing') {
+            const elapsed = (Date.now() - videoState.updatedAt) / 1000;
+            syncTime += elapsed;
+          }
+          console.log(
+            `[Socket] videoStatus 확인 완료-> status: ${videoState.status}, time: ${videoState.time}, syncTime: ${syncTime}`,
+          );
+          socket.emit('video:sync', {
+            type: 'video:sync',
+            data: { roomId, currentTime: syncTime, status: videoState.status },
+          });
+          console.log('[Socket]  [participant] video:sync 소캣 이벤트 전송 완료 ->', user.nickname);
+        }
+      }
     } catch (error) {
       console.log('[Socket] joinRoom 소캣 통신에러:', error);
       socket.emit('error', { type: 'joinRoom', data: '방 참여 실패' });
@@ -93,6 +142,39 @@ export default function chatHandler(io: Server, socket: Socket) {
           user: { nickname: user.nickname, role: role },
         },
       });
+
+      /**
+       * 방 영상 정보 동기화
+       */
+      const videoState = await getRoomVideoState(roomId);
+      let syncTime = videoState.time;
+      //방장일 경우
+      if (role === 'host') {
+        await setRoomVideoState(roomId, 'playing', syncTime);
+        io.to(roomId.toString()).emit('video:play', {
+          roomId,
+          currentTime: syncTime,
+          updatedAt: Date.now(),
+        });
+        console.log('[Socket] [host] video:play 소캣 이벤트 전송 완료 ->', user.nickname);
+      }
+      //참가자일경우
+      else {
+        if (videoState) {
+          if (videoState.status === 'playing') {
+            const elapsed = (Date.now() - videoState.updatedAt) / 1000;
+            syncTime += elapsed;
+          }
+          console.log(
+            `[Socket] videoStatus 확인 완료-> status: ${videoState.status}, time: ${videoState.time}, syncTime: ${syncTime}`,
+          );
+          socket.emit('video:sync', {
+            type: 'video:sync',
+            data: { roomId, currentTime: syncTime, status: videoState.status },
+          });
+          console.log('[Socket]  [participant] video:sync 소캣 이벤트 전송 완료 ->', user.nickname);
+        }
+      }
     } catch (error) {
       console.log('[Socket] enterRoom 소캣 통신에러:', error);
       socket.emit('error', { type: 'enterRoom', message: '방 입장 실패' });
@@ -193,6 +275,14 @@ export default function chatHandler(io: Server, socket: Socket) {
       const leaveres = await leaveRoom(Number(parsedRoomId), Number(userId));
       console.log('[Socket] leaveRoom Redis 처리: ', leaveres);
       socket.leave(roomId.toString());
+
+      //방 재생 정보 동기화 -멈춤
+      if (role === 'host') {
+        io.to(roomId.toString()).emit('video:pause', { roomId, currentTime: 0 });
+        const leaveres2 = await deleteRoomVideoState(roomId);
+        console.log('[Socket] 방장 나감 Redis 처리: ', leaveres2);
+      }
+
       io.to(roomId.toString()).emit('userLeft', {
         type: 'userLeft',
         data: {
@@ -213,6 +303,61 @@ export default function chatHandler(io: Server, socket: Socket) {
   socket.on('disconnect', async () => {
     const userId = socket.data.user.id;
     await offlineUser(userId, socket.id);
+  });
+
+  /**
+   * 방 영상 정보 동기화
+   */
+  // 영상 재생
+  socket.on('video:play', async ({ roomId, currentTime }) => {
+    try {
+      const isRoomHost = await isHost(roomId, userId);
+      if (!isRoomHost) return; // 방장 아니면 무시
+      const resRedis = await setRoomVideoState(roomId, 'playing', currentTime);
+      console.log('[REDIS] 방 playing 재생 정보 저장: ', resRedis);
+      io.to(roomId.toString()).emit('video:play', { roomId, currentTime, updatedAt: Date.now() });
+      console.log(
+        '[Socket] video:play 소캣 이벤트 전송 완료 ->',
+        user.nickname,
+        'time: ',
+        currentTime,
+      );
+      socket.emit('success', { type: 'video:play', data: '방 영상 재생 성공' });
+    } catch (err) {
+      console.error('[Socket] video:play error:', err); // 서버 로그 확인용
+      socket.emit('error', { type: 'video:play', data: '방 영상 재생 실패' });
+    }
+  });
+
+  //영상 멈춤
+  socket.on('video:pause', async ({ roomId, currentTime }) => {
+    try {
+      if (!(await isHost(roomId, userId))) return;
+      const resRedis = await setRoomVideoState(roomId, 'paused', currentTime);
+      console.log('[REDIS] 방 pause 재생 정보 저장: ', resRedis);
+      io.to(roomId.toString()).emit('video:pause', { roomId, currentTime });
+      console.log(
+        '[Socket] video:pause 소캣 이벤트 전송 완료 ->',
+        user.nickname,
+        'time: ',
+        currentTime,
+      );
+      socket.emit('success', { type: 'video:pause', data: '방 영상 멈춤 성공' });
+    } catch (err) {
+      console.error('[Socket] video:pause error:', err);
+    }
+  });
+
+  //영상 재생 시간 동기화
+  socket.on('video:sync', async ({ roomId, currentTime }) => {
+    try {
+      if (!(await isHost(roomId, userId))) return;
+      const updres = await updateRoomVideoTime(roomId, currentTime);
+      console.log('[REDIS] 방 재생 정보 동기화 업데이트: ', updres);
+      socket.emit('success', { type: 'video:sync', data: '방 영상 동기화 업데이트 성공' });
+    } catch (err) {
+      console.error('[Socket] video:sync error:', err);
+    }
   });
 
   /**
