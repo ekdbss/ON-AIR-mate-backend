@@ -144,7 +144,7 @@ export default function chatHandler(io: Server, socket: Socket) {
       const updatedRoom = await roomInfoService.getRoomInfoById(roomId);
 
       //변경된 설정 브로드캐스트
-      io.to(roomId.toString()).emit('roomSettingsUpdated', { updatedRoom });
+      io.to(roomId.toString()).emit('roomSettingsUpdated', { data: updatedRoom });
 
       console.log(`[ROOM ${roomId}] Settings updated by owner ${userId}`);
 
