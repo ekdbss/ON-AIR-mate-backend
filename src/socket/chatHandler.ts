@@ -142,11 +142,12 @@ export default function chatHandler(io: Server, socket: Socket) {
         return;
       }
       const updatedRoom = await roomInfoService.getRoomInfoById(roomId);
+      if (updatedRoom) console.log('[SOCKET] 방 설정 업데이트 준비 완료:', updatedRoom.roomTitle);
 
       //변경된 설정 브로드캐스트
       io.to(roomId.toString()).emit('roomSettingsUpdated', { data: updatedRoom });
 
-      console.log(`[ROOM ${roomId}] Settings updated by owner ${userId}`);
+      console.log(`[SOCKET] [ROOM ${roomId}] Settings updated by owner ${userId}`);
 
       socket.emit('success', { type: 'updateRoomSettings', message: '방 설정 성공' });
     } catch (error) {
