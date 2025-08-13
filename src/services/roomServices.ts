@@ -134,6 +134,7 @@ export const addParticipant = async (roomId: number, participant: Participant) =
 
 //참가자 방 탈퇴
 export const removeParticipant = async (roomId: number, userId: number) => {
+  console.log('[방 탈퇴 로그]removeParticipant params:', roomId, userId, typeof roomId);
   const room = await prisma.room.findUnique({
     where: { roomId },
   });

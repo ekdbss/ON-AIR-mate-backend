@@ -154,9 +154,11 @@ export default function chatHandler(io: Server, socket: Socket) {
   });
 
   //room 퇴장
-  socket.on('leaveRoom', async (roomId: number) => {
+  socket.on('leaveRoom', async (roomId: any) => {
     try {
-      await leaveRoom(roomId, Number(userId));
+      const parsedRoomId = typeof roomId === 'object' ? roomId.roomId : roomId;
+      console.log('[leave Room] 파라미터 확인:', roomId, ', 파싱해서:', parsedRoomId);
+      await leaveRoom(Number(parsedRoomId), Number(userId));
       socket.leave(roomId.toString());
       io.to(roomId.toString()).emit('userLeft', { userId, socketId: socket.id });
 
