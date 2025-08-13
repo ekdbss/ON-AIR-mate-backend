@@ -1,4 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma.js';
+import { CollectionVisibility } from '@prisma/client';
 import {
   CreateCollectionDto,
   GetCollectionDto,
@@ -6,8 +7,7 @@ import {
 } from '../dtos/collectionDto.js';
 import AppError from '../middleware/errors/AppError.js';
 
-const prisma = new PrismaClient();
-
+// 1. 컬랙션 생성
 export const createCollection = async (userId: number, collectionData: CreateCollectionDto) => {
   try {
     // 입력 데이터 검증
@@ -31,6 +31,7 @@ export const createCollection = async (userId: number, collectionData: CreateCol
   }
 };
 
+// 2. 컬랙션 목록 조회
 export const getCollectionsByUserId = async (userId: number): Promise<GetCollectionDto[]> => {
   const collections = await prisma.collection.findMany({
     where: {
@@ -50,6 +51,7 @@ export const getCollectionsByUserId = async (userId: number): Promise<GetCollect
   }));
 };
 
+// 3. 컬랙션 상세 조회
 export const getCollectionDetailById = async (
   collectionId: number,
   userId: number,
@@ -113,4 +115,66 @@ export const getCollectionDetailById = async (
       createdAt: bookmark.createdAt,
     })),
   };
+};
+
+// 4. 컬렉션 수정
+export const updateCollection = async (
+  collectionId: number,
+  userId: number,
+  data: { title?: string; description?: string; visibility?: CollectionVisibility },
+) => {
+  const collection = await prisma.collection.findUnique({ where: { collectionId } });
+
+  if (!collection) {
+    throw new AppError('COLLECTION_001', '컬렉션을 찾을 수 없습니다.');
+  }
+  if (collection.userId !== userId) {
+    throw new AppError('COLLECTION_003', '권한이 없습니다.');
+  }
+
+  await prisma.collection.update({
+    where: { collectionId },
+    data,
+  });
+};
+
+// 5. 컬렉션 삭제
+export const deleteCollection = async (collectionId: number, userId: number) => {
+  const collection = await prisma.collection.findUnique({ where: { collectionId } });
+
+  if (!collection) {
+    throw new AppError('COLLECTION_001', '컬렉션을 찾을 수 없습니다.');
+  }
+  if (collection.userId !== userId) {
+    throw new AppError('COLLECTION_003', '권한이 없습니다.');
+  }
+
+  // "정리되지 않은 북마크" 컬렉션으로 북마크 이동
+  const defaultCollection = await prisma.collection.findFirst({
+    where: { userId, title: '정리되지 않은 북마크' },
+  });
+
+  if (defaultCollection) {
+    await prisma.bookmark.updateMany({
+      where: { collectionId },
+      data: { collectionId: defaultCollection.collectionId },
+    });
+  }
+
+  await prisma.collection.delete({ where: { collectionId } });
+};
+
+// 6. 컬렉션 순서 변경
+export const updateCollectionOrder = async (
+  userId: number,
+  collectionOrders: { collectionId: number; order: number }[],
+) => {
+  await prisma.$transaction(
+    collectionOrders.map(({ collectionId, order }) =>
+      prisma.collection.updateMany({
+        where: { collectionId, userId },
+        data: { order },
+      }),
+    ),
+  );
 };

@@ -37,3 +37,13 @@ export interface GetCollectionDetailDto {
   updatedAt: Date;
   bookmarks: BookmarkInCollectionDto[];
 }
+
+export interface UpdateCollectionDto {
+  title?: string;
+  description?: string;
+  visibility?: CollectionVisibility;
+}
+
+export interface ReorderCollectionsDto {
+  collectionOrders: { collectionId: number; order: number }[];
+}

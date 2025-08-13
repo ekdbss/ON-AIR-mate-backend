@@ -105,6 +105,82 @@ router.get('/', requireAuth, collectionController.getCollections);
 router.get('/:collectionId', requireAuth, collectionController.getCollectionDetail);
 
 /**
+ * @swagger
+ * /api/collections/{collectionId}:
+ *   put:
+ *     summary: 컬렉션 수정
+ *     tags: [Collections]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: collectionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateCollectionDto'
+ *           example:
+ *             title: "수정된 컬렉션 제목"
+ *             description: "수정된 컬렉션 소개"
+ *             visibility: "friends"
+ *     responses:
+ *       200:
+ *         description: 컬렉션 수정 성공
+ */
+router.put('/:collectionId', requireAuth, collectionController.updateCollection);
+
+/**
+ * @swagger
+ * /api/collections/{collectionId}:
+ *   delete:
+ *     summary: 컬렉션 삭제
+ *     tags: [Collections]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: collectionId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: 컬렉션 삭제 성공
+ */
+router.delete('/:collectionId', requireAuth, collectionController.deleteCollection);
+
+/**
+ * @swagger
+ * /api/collections/order:
+ *   put:
+ *     summary: 컬렉션 순서 변경
+ *     tags: [Collections]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ReorderCollectionsDto'
+ *           example:
+ *             collectionOrders:
+ *               - collectionId: 123
+ *                 order: 1
+ *               - collectionId: 124
+ *                 order: 2
+ *     responses:
+ *       200:
+ *         description: 컬렉션 순서 변경 성공
+ */
+router.put('/order', requireAuth, collectionController.updateCollectionOrder);
+
+/**
  * 컬렉션 공유하기
  */
 /**

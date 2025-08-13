@@ -225,8 +225,8 @@ model Collection {
   originalCollectionId Int?                 @map("original_collection_id")
   createdAt            DateTime             @default(now()) @map("created_at")
   coverImage           String?              @map("cover_image") @db.VarChar(500)
-  order                Int?                 @default(1) @map("order") // 순서 필드 (기본값 1)
   updatedAt            DateTime             @updatedAt @map("updated_at")
+  order                Int?                 @default(1) @map("order")
   bookmarks            Bookmark[]
   originalCollection   Collection?          @relation("CollectionCopy", fields: [originalCollectionId], references: [collectionId])
   copiedCollections    Collection[]         @relation("CollectionCopy")
