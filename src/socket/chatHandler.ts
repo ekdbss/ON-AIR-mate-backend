@@ -7,7 +7,7 @@ import {
   getChatRoom,
 } from '../services/messageServices.js';
 import { roomInfoService } from '../services/roomInfoService.js';
-import { removeParticipant } from '../services/roomServices.js';
+import { removeParticipant, isHost } from '../services/roomServices.js';
 import { chatMessageType, MessageType } from '../dtos/messageDto.js';
 
 export default function chatHandler(io: Server, socket: Socket) {
@@ -30,6 +30,8 @@ export default function chatHandler(io: Server, socket: Socket) {
       socket.join(roomId.toString());
       console.log('[Socket] entered room:', roomId);
 
+      const role = await isHost(roomId, userId);
+
       //redis
       const redis = await joinRoom(roomId, Number(userId), socket.id);
       console.log('[Socket] 입장 REDIS 처리: ', redis);
@@ -40,7 +42,11 @@ export default function chatHandler(io: Server, socket: Socket) {
       });
       console.log(`[Socket] ${nickname}님이 ${roomId} 방에 입장`);
 
-      socket.emit('success', { type: 'joinRoom', message: '방 참여 성공' });
+      socket.emit('success', {
+        type: 'joinRoom',
+        message: '방 참여 성공',
+        user: { nickname: user.nickname, role: role },
+      });
     } catch (error) {
       console.log('[Socket] joinRoom 소캣 통신에러:', error);
       socket.emit('error', { type: 'joinRoom', message: '방 참여 실패' });
@@ -65,6 +71,8 @@ export default function chatHandler(io: Server, socket: Socket) {
         });
         return;
       }
+      const role = await isHost(roomId, userId);
+
       //해당 소캣이 room에 join함
       socket.join(roomId.toString());
       console.log('[Socket] entered room:', roomId);
@@ -73,7 +81,11 @@ export default function chatHandler(io: Server, socket: Socket) {
       const res = await enterRoom(Number(userId), socket.id);
       console.log('[Socket] enterRoom 이벤트 성공, redis: ', res);
 
-      socket.emit('success', { type: 'enterRoom', message: '방 입장 성공' });
+      socket.emit('success', {
+        type: 'enterRoom',
+        message: '방 입장 성공',
+        user: { nickname: user.nickname, role: role },
+      });
     } catch (error) {
       console.log('[Socket] enterRoom 소캣 통신에러:', error);
       socket.emit('error', { type: 'enterRoom', message: '방 입장 실패' });
@@ -164,10 +176,19 @@ export default function chatHandler(io: Server, socket: Socket) {
       //퇴장 db 처리
       const leaveDB = await removeParticipant(Number(parsedRoomId), userId);
       console.log('leaveRoom 디비 처리:', leaveDB);
+      let role = 'participant';
+      if (leaveDB?.ishost === true) {
+        role = 'host';
+      }
       const leaveres = await leaveRoom(Number(parsedRoomId), Number(userId));
       console.log('[Socket] leaveRoom Redis 처리: ', leaveres);
       socket.leave(roomId.toString());
-      io.to(roomId.toString()).emit('userLeft', { userId, socketId: socket.id });
+      io.to(roomId.toString()).emit('userLeft', {
+        userId,
+        nickname: user.nickname,
+        role: role,
+        socketId: socket.id,
+      });
 
       socket.emit('success', { type: 'leaveRoom', message: '방 퇴장 성공' });
     } catch (err) {

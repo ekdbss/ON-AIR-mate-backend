@@ -113,6 +113,19 @@ export const checkParticipant = async (roomId: number, userId: number) => {
   return participant !== null;
 };
 
+// host 확인
+export const isHost = async (roomId: number, userId: number) => {
+  const participant = await prisma.roomParticipant.findFirst({
+    where: {
+      roomId,
+      userId,
+      left_at: null,
+    },
+  });
+  //return participant !== null && participant.left === null;
+  return participant?.role;
+};
+
 //새 참가자 추가
 export const addParticipant = async (roomId: number, participant: Participant) => {
   const room = await prisma.room.findUnique({
@@ -201,7 +214,7 @@ export const removeParticipant = async (roomId: number, userId: number) => {
       where: { roomId: roomId },
     });
 
-    return { message: '방이 삭제되었습니다(호스트 탈퇴).', participant: 'everyone' };
+    return { message: '방이 삭제되었습니다(호스트 탈퇴).', participant: 'everyone', ishost: true };
   }
 
   // 2. 일반 참가자인 경우 → 본인만 탈퇴
@@ -210,5 +223,9 @@ export const removeParticipant = async (roomId: number, userId: number) => {
     data: { left_at: new Date() },
   });
 
-  return { message: '방이 삭제되었습니다(호스트 탈퇴).', participant: updatedParticipant };
+  return {
+    message: '방이 삭제되었습니다(호스트 탈퇴).',
+    participant: updatedParticipant,
+    ishost: false,
+  };
 };
