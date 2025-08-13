@@ -7,6 +7,7 @@ import {
   getChatRoom,
 } from '../services/messageServices.js';
 import { roomInfoService } from '../services/roomInfoService.js';
+import { removeParticipant } from '../services/roomServices.js';
 import { chatMessageType, MessageType } from '../dtos/messageDto.js';
 
 export default function chatHandler(io: Server, socket: Socket) {
@@ -158,6 +159,9 @@ export default function chatHandler(io: Server, socket: Socket) {
     try {
       const parsedRoomId = typeof roomId === 'object' ? roomId.roomId : roomId;
       console.log('[leave Room] 파라미터 확인:', roomId, ', 파싱해서:', parsedRoomId);
+      //퇴장 db 처리
+      const leaveDB = await removeParticipant(Number(parsedRoomId), userId);
+      console.log('leaveRoom 디비 처리:', leaveDB);
       await leaveRoom(Number(parsedRoomId), Number(userId));
       socket.leave(roomId.toString());
       io.to(roomId.toString()).emit('userLeft', { userId, socketId: socket.id });
@@ -232,8 +236,9 @@ export default function chatHandler(io: Server, socket: Socket) {
         });
 
         //전송
-        socket.to(dmId.toString()).emit('receiveDirectMessage', { data: message });
-        console.log(`[Socket] DM ${userId} -> ${dmId}: ${content}`);
+        console.log(`[Socket] DM 전송 준비 완료: ${userId} -> ${dmId}`);
+        io.to(dmId.toString()).emit('receiveDirectMessage', { data: message });
+        console.log(`[Socket] DM 전송 완료: ${userId} -> ${dmId}: ${content}`);
 
         socket.emit('success', { type: 'sendDirectMessage', message: 'DM 채팅 성공' });
       } catch (err) {
