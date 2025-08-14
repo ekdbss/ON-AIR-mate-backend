@@ -214,7 +214,7 @@ export const saveDirectMessage = async (senderId: number, payload: SendDirectMes
     receiverId,
     content: message.content,
     messageType: message.type,
-    createdAt: message.createdAt,
+    timestamp: message.createdAt,
   };
 };
 

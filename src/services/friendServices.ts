@@ -459,29 +459,18 @@ export const inviteFriendToRoom = async (
       io.to(friendSocketId).emit('receiveDirectMessage', {
         type: 'receiveDirectMessage',
         data: {
+          messageId: message?.messageId,
           senderId: result.inviter!.userId,
           receiverId: friendId,
           content: `${room.roomName} 방에 초대했습니다.`,
           messageType: 'roomInvite', //('general','roomInvite','bookmarkShare')
-          createdAt: message?.createdAt,
-          roomInvite: {
-            inviter: {
-              userId: result.inviter!.userId,
-              nickname: result.inviter!.nickname,
-              profileImage: result.inviter!.profileImage,
-            },
-            room: {
-              roomId: room.roomId,
-              roomName: room.roomName,
-              currentParticipants: currentParticipants,
-              maxParticipants: room.maxParticipants,
-              isPrivate: !room.isPublic,
-            },
+          timestamp: message?.createdAt,
+          room: {
+            roomId: room.roomId,
+            roomName: room.roomName,
             video: {
               title: result.video?.title || '',
-              thumbnail: result.video?.thumbnail || '',
             },
-            invitedAt: new Date().toISOString(),
           },
         },
       });

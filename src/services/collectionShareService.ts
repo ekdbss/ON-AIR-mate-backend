@@ -65,11 +65,12 @@ export const shareCollectionService = async (
           io.to(friendSocketId).emit('receiveDirectMessage', {
             type: 'receiveDirectMessage',
             data: {
+              messageId: message.messageId,
               senderId: message.senderId,
               receiverId: message.receiverId,
               content: contentObj.message,
               messageType: 'collectionShare', //('general','roomInvite','bookmarkShare')
-              createdAt: message.createdAt,
+              timestamp: message.createdAt,
               collection: {
                 collectionId: collection.collectionId,
                 title: collection.title,
