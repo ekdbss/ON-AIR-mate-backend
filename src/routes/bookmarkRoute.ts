@@ -104,6 +104,9 @@ router.post('/', requireAuth, createBookmark);
  *                               roomId:
  *                                 type: number
  *                                 example: 333
+ *                               roomName:
+ *                                 type: string
+ *                                 example: "방이름1"
  *                               videoTitle:
  *                                 type: string
  *                                 example: "영상제목"
@@ -140,6 +143,9 @@ router.post('/', requireAuth, createBookmark);
  *                               roomId:
  *                                 type: number
  *                                 example: 393
+ *                               roomName:
+ *                                 type: string
+ *                                 example: "방이름2"
  *                               videoTitle:
  *                                 type: string
  *                                 example: "영상제목"
@@ -171,6 +177,7 @@ router.post('/', requireAuth, createBookmark);
  *       401:
  *         description: 인증 실패
  */
+
 // 2. 북마크 목록 조회
 router.get('/', requireAuth, getBookmarks);
 
