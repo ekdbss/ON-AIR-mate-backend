@@ -323,7 +323,7 @@ export const getDirectMessages = async (userId: number, receiverId: number) => {
     } else if (msg.type === 'roomInvite' && msg.content) {
       try {
         const contentObj = JSON.parse(msg.content);
-        console.log('roomInvte 파싱:',contentObj);
+        console.log('roomInvte 파싱:', contentObj);
         const roomId = contentObj.roomId;
         /* const room = await prisma.room.findUnique({
           where: { roomId },
@@ -337,18 +337,17 @@ export const getDirectMessages = async (userId: number, receiverId: number) => {
             },
           },
         }); */
-        
+
         base.content = contentObj.message;
-          let room = {
-            roomId,
-            roomName : contentObj.roomName,
-            video :{
-              title:contentObj.videoTitle|| '',
-            }
-        }
+        const room = {
+          roomId,
+          roomName: contentObj.roomName,
+          video: {
+            title: contentObj.videoTitle || '',
+          },
+        };
         base = { ...base, room };
         console.log('baseroom -room:', room);
-        
       } catch {
         // parsing error or no room found
         console.log('[messagType: roomInvite] parsing error or no room found');
