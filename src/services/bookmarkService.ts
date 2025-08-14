@@ -43,7 +43,7 @@ type BookmarkWithRelations = Prisma.BookmarkGetPayload<{
   include: {
     room: {
       include: {
-        video: true; // <-- Room.video (YoutubeVideo)
+        video: true; // Room.video (YoutubeVideo)
       };
     };
     collection: {
@@ -58,10 +58,8 @@ export const getBookmarks = async (userId: number, options: GetBookmarksOptions)
   // 동적 where 구성
   const where: Prisma.BookmarkWhereInput = { userId };
   if (typeof collectionId === 'number') {
-    // 특정 컬렉션만
     where.collectionId = collectionId;
   } else if (uncategorized === true) {
-    // 미분류만
     where.collectionId = null;
   }
 
@@ -86,24 +84,24 @@ export const getBookmarks = async (userId: number, options: GetBookmarksOptions)
     const grouped: Array<{
       roomData: {
         roomId: number;
+        roomName: string | null;
         videoTitle: string | null;
         videoThumbnail: string | null;
         collectionTitle: string | null;
       };
       bookmarks: Array<{
         bookmarkId: number;
-        message: string; // = content
+        message: string;
         timeline: number | null;
-        createdAt?: Date; // all에서만
+        createdAt?: Date;
       }>;
     }> = [];
 
-    const map = new Map<number, number>(); // roomId -> grouped 인덱스
+    const map = new Map<number, number>();
 
     for (const b of list) {
       const roomId = b.roomId;
-
-      // roomData 구성
+      const roomName = b.room?.roomName ?? null;
       const videoTitle = b.room?.video?.title ?? null;
       const videoThumbnail = b.room?.video?.thumbnail ?? null;
       const bookmarkCollectionTitle = b.collection?.title ?? null;
@@ -113,23 +111,21 @@ export const getBookmarks = async (userId: number, options: GetBookmarksOptions)
         grouped.push({
           roomData: {
             roomId,
+            roomName,
             videoTitle,
             videoThumbnail,
-            collectionTitle: bookmarkCollectionTitle, // 최초 북마크의 컬렉션 제목(미분류면 null)
+            collectionTitle: bookmarkCollectionTitle,
           },
           bookmarks: [],
         });
         idx = grouped.length - 1;
         map.set(roomId, idx);
       } else {
-        // 이미 그룹이 있는데 roomData.collectionTitle이 비어 있고
-        // 이번 북마크에 컬렉션 제목이 있으면 보완(옵션)
         if (grouped[idx].roomData.collectionTitle == null && bookmarkCollectionTitle != null) {
           grouped[idx].roomData.collectionTitle = bookmarkCollectionTitle;
         }
       }
 
-      // bookmark 항목 구성 (message = content)
       const item: {
         bookmarkId: number;
         message: string;
@@ -137,8 +133,8 @@ export const getBookmarks = async (userId: number, options: GetBookmarksOptions)
         createdAt?: Date;
       } = {
         bookmarkId: b.bookmarkId,
-        message: b.content ?? '', // schema 상 content가 메시지 본문
-        timeline: b.timeline ?? 0, // 초 단위
+        message: b.content ?? '',
+        timeline: b.timeline ?? 0,
       };
 
       if (includeCreatedAt) {
@@ -151,28 +147,24 @@ export const getBookmarks = async (userId: number, options: GetBookmarksOptions)
     return grouped;
   };
 
-  // 필터 동작
   if (typeof collectionId === 'number') {
-    // 특정 컬렉션만 조회한 경우 → uncategorized는 비우고 all만 반환
     return {
       uncategorized: [],
-      all: groupByRoom(rows, true), // createdAt 포함
+      all: groupByRoom(rows, true),
     };
   }
 
   if (uncategorized === true) {
-    // 미분류만 요청한 경우 → uncategorized만 반환
     return {
-      uncategorized: groupByRoom(rows, false), // createdAt 제외
+      uncategorized: groupByRoom(rows, false),
       all: [],
     };
   }
 
-  // 기본(전체) → 한 번에 둘 다 구성
   const uncategorizedList = rows.filter(b => b.collectionId == null);
   return {
-    uncategorized: groupByRoom(uncategorizedList, false), // createdAt 제외
-    all: groupByRoom(rows, true), // createdAt 포함
+    uncategorized: groupByRoom(uncategorizedList, false),
+    all: groupByRoom(rows, true),
   };
 };
 
