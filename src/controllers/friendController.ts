@@ -57,7 +57,7 @@ export const getFriendRequests = async (req: Request, res: Response, next: NextF
     }
 
     const requests = await friendService.getFriendRequests(userId);
-    console.log("요청 목록 조회:",requests);
+    console.log('요청 목록 조회:', requests);
     sendSuccess(res, requests);
   } catch (error) {
     next(error);

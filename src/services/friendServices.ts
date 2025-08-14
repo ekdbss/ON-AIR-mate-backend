@@ -193,8 +193,7 @@ export const getFriendRequests = async (userId: number): Promise<FriendRequest[]
     },
   });
 
-  console.log("요청 목록 조회:",requests);
-
+  console.log('요청 목록 조회:', requests);
 
   return requests.map(request => ({
     requestId: request.friendshipId,
@@ -238,7 +237,7 @@ export const handleFriendRequest = async (
   // 요청 처리
   const newStatus: FriendshipStatus = action === 'ACCEPT' ? 'accepted' : 'rejected';
 
-  const fres= await prisma.friendship.update({
+  const fres = await prisma.friendship.update({
     where: { friendshipId: requestId },
     data: {
       status: newStatus,
@@ -246,7 +245,7 @@ export const handleFriendRequest = async (
       isAccepted: action === 'ACCEPT',
     },
   });
-  console.log('친구 요청 db 처리: ',fres);
+  console.log('친구 요청 db 처리: ', fres);
 
   return action === 'ACCEPT' ? '친구 요청을 수락했습니다.' : '친구 요청을 거절했습니다.';
 };
