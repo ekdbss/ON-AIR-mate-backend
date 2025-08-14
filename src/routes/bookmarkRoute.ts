@@ -143,9 +143,12 @@ router.post('/', requireAuth, createBookmark);
  *                               roomId:
  *                                 type: number
  *                                 example: 393
+<<<<<<< HEAD
  *                               roomName:
  *                                 type: string
  *                                 example: "방이름2"
+=======
+>>>>>>> f77acd4bd44d2a4333910a342248dad3de6b9657
  *                               videoTitle:
  *                                 type: string
  *                                 example: "영상제목"
