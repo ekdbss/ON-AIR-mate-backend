@@ -22,7 +22,7 @@ type YoutubeVideoResult = {
   thumbnail: string;
   channelName: string;
   viewCount: number;
-  uploadedTime: string; // DTO에 맞춤
+  uploadTime: string;
 };
 
 export const searchYoutubeVideos = async (req: Request, res: Response): Promise<void> => {
@@ -84,7 +84,7 @@ export const searchYoutubeVideos = async (req: Request, res: Response): Promise<
             thumbnail: item.snippet.thumbnails.medium.url,
             channelName: item.snippet.channelTitle,
             viewCount: parseInt(videoData.statistics.viewCount, 10),
-            uploadedTime: videoData.snippet.publishedAt, // DTO 필드명 일치
+            uploadTime: videoData.snippet.publishedAt, // DTO 필드명 일치
           } as YoutubeVideoResult;
         } catch (err) {
           console.error(`Failed to fetch video details for ID ${item.id!.videoId}`, err);
