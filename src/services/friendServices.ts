@@ -6,6 +6,7 @@ import { getIO } from '../socket/index.js';
 import redis from '../redis.js';
 import { USER_SOCKET_KEY } from '../socket/redisManager.js';
 import { saveDirectMessage } from './messageServices.js';
+import { roomInfoService } from '../services/roomInfoService.js';
 
 // 타입 정의
 interface Friend {
@@ -362,6 +363,17 @@ export const inviteFriendToRoom = async (
     },
   });
 
+  //4. 방장 정보 조회
+  const host = await prisma.user.findUnique({
+    where: { userId: room?.hostId },
+    select: {
+      userId: true,
+      nickname: true,
+      profileImage: true,
+      popularity: true,
+    },
+  });
+
   if (!room) {
     throw new AppError('ROOM_001');
   }
@@ -423,13 +435,14 @@ export const inviteFriendToRoom = async (
     });
 
     // 3. 방의 영상 정보 조회
-    const video = await tx.youtubeVideo.findUnique({
+    const video = await roomInfoService.getRoomInfoById(roomId);
+    /* const video = await tx.youtubeVideo.findUnique({
       where: { videoId: room.videoId },
       select: {
         title: true,
         thumbnail: true,
       },
-    });
+    }); */
 
     return { notification, inviter, video };
   });
@@ -442,7 +455,15 @@ export const inviteFriendToRoom = async (
       content: JSON.stringify({
         roomId: room.roomId,
         roomName: room.roomName,
-        videoTitle: result.video?.title || '',
+        hostNickname: host?.nickname,
+        hostProfileImage: host?.profileImage,
+        hostPopularity: host?.popularity,
+        currentParticipants: room.currentParticipants,
+        maxParticipants: room.maxParticipants,
+        videoTitle: result.video?.videoTitle || '',
+        videoThumbnail: result.video?.videoThumbnail || '',
+        duration: result.video?.duration,
+        isPrivate: result.video?.isPrivate,
         message: `${room.roomName} 방에 초대했습니다.`,
       }),
       type: 'roomInvite',
@@ -473,9 +494,15 @@ export const inviteFriendToRoom = async (
           room: {
             roomId: room.roomId,
             roomName: room.roomName,
-            video: {
-              title: result.video?.title || '',
-            },
+            hostNickname: host?.nickname,
+            hostProfileImage: host?.profileImage,
+            hostPopularity: host?.popularity,
+            currentParticipants: room.currentParticipants,
+            maxParticipants: room.maxParticipants,
+            videoTitle: result.video?.videoTitle || '',
+            videoThumbnail: result.video?.videoThumbnail || '',
+            duration: result.video?.duration,
+            isPrivate: result.video?.isPrivate,
           },
         },
       });
