@@ -111,7 +111,7 @@ router.get('/test', (req, res) => {
  *       401:
  *         description: 인증 실패
  */
-router.post('/profile/image', requireAuth, uploadProfileImageHandler);
+router.post('/profile/image', uploadProfileImageHandler);
 
 router.get('/profile', requireAuth, getProfile);
 
