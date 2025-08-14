@@ -146,8 +146,19 @@ export const sendFriendRequest = async (
       throw new AppError('FRIEND_001');
     } else if (existingFriendship.status === 'pending') {
       throw new AppError('FRIEND_002');
+    } else if (existingFriendship.status === 'rejected') {
+      // 거절된 요청이 있는 경우 기존 요청을 삭제하고 새로운 요청 생성
+      await prisma.friendship.delete({
+        where: { friendshipId: existingFriendship.friendshipId },
+      });
     }
   }
+
+  // 요청자 정보 가져오기
+  const requester = await prisma.user.findUnique({
+    where: { userId: requesterId },
+    select: { nickname: true },
+  });
 
   // 트랜잭션으로 친구 요청과 알림을 함께 생성
   await prisma.$transaction(async tx => {
@@ -164,7 +175,8 @@ export const sendFriendRequest = async (
         fromUserId: requesterId,
         toUserId: targetUserId,
         type: 'friendRequest',
-        title: '새로운 친구 요청이 있습니다.',
+        title: `${requester?.nickname}님이 친구 요청을 보냈습니다.`, // content → title
+        // isRead와 status는 기본값 사용 (status: 'unread')
       },
     });
   });
@@ -214,25 +226,54 @@ export const handleFriendRequest = async (
   requestId: number,
   action: 'ACCEPT' | 'REJECT',
 ): Promise<string> => {
+  console.log(`[친구 요청 처리] 사용자 ${userId}, 요청 ${requestId}, 액션: ${action}`);
+
   // 친구 요청 확인
   const request = await prisma.friendship.findUnique({
     where: { friendshipId: requestId },
+    include: {
+      requester: {
+        select: {
+          nickname: true,
+        },
+      },
+      receiver: {
+        select: {
+          nickname: true,
+        },
+      },
+    },
   });
 
   console.log('요청 상태 확인:', request);
 
   if (!request) {
+    console.error(`[친구 요청 처리 실패] 요청 ID ${requestId}가 존재하지 않음`);
     throw new AppError('FRIEND_006');
   }
 
   // 본인에게 온 요청인지 확인
   if (request.requestedTo !== userId) {
+    console.error(`[친구 요청 처리 실패] 사용자 ${userId}는 요청 ${requestId}에 대한 권한이 없음`);
     throw new AppError('GENERAL_002');
   }
 
   // 이미 처리된 요청인지 확인
   if (request.status !== 'pending') {
-    throw new AppError('GENERAL_001');
+    console.warn(`[친구 요청 처리 실패] 요청 ${requestId}는 이미 ${request.status} 상태임`);
+
+    if (request.status === 'rejected' && action === 'REJECT') {
+      // 이미 거절된 요청을 다시 거절하려는 경우
+      console.log(`[친구 요청] ${request.receiver.nickname}님이 이미 거절된 요청을 다시 거절 시도`);
+      throw new AppError('FRIEND_010');
+    } else if (request.status === 'accepted') {
+      // 이미 수락된 요청
+      console.log(`[친구 요청] 이미 수락된 요청에 대한 처리 시도`);
+      throw new AppError('FRIEND_001');
+    } else {
+      // 기타 이미 처리된 요청
+      throw new AppError('FRIEND_009');
+    }
   }
 
   // 요청 처리
@@ -247,6 +288,11 @@ export const handleFriendRequest = async (
     },
   });
   console.log('친구 요청 db 처리: ', fres);
+
+  const actionMessage = action === 'ACCEPT' ? '수락' : '거절';
+  console.log(
+    `[친구 요청 처리 성공] ${request.receiver.nickname}님이 ${request.requester.nickname}님의 친구 요청을 ${actionMessage}함`,
+  );
 
   return action === 'ACCEPT' ? '친구 요청을 수락했습니다.' : '친구 요청을 거절했습니다.';
 };
