@@ -194,6 +194,8 @@ export const removeParticipant = async (roomId: number, userId: number) => {
     },
   });
 
+  console.log('parti:ddddd', participant);
+
   if (!participant) {
     console.warn(`[방 탈퇴] 해당 유저(${userId})는 방(${roomId}) 참가자가 아님`);
     return null;
@@ -208,22 +210,31 @@ export const removeParticipant = async (roomId: number, userId: number) => {
       data: { left_at: new Date() },
     });
 
-    // 방 삭제 (Cascade 설정이므로 메시지/참가자 같이 삭제)
+    // 방 삭제 ()
     await prisma.room.delete({
       where: { roomId: roomId },
     });
 
+    const checkRoom = await prisma.room.findUnique({
+      where: { roomId: roomId },
+    });
+    console.log('room DB 삭제 확인: 0', checkRoom);
+    if (checkRoom) {
+      return { message: '방이 삭제 실패하였습니다.', participant: 'everyone', ishost: true };
+    }
     return { message: '방이 삭제되었습니다(호스트 탈퇴).', participant: 'everyone', ishost: true };
   }
 
   // 2. 일반 참가자인 경우 → 본인만 탈퇴
+
   const updatedParticipant = await prisma.roomParticipant.update({
     where: { participantId: participant.participantId },
     data: { left_at: new Date() },
   });
+  console.log('parti:참가자임 ', updatedParticipant);
 
   return {
-    message: '방이 삭제되었습니다(호스트 탈퇴).',
+    message: '방이 삭제되었습니다(참가자 탈퇴).',
     participant: updatedParticipant,
     ishost: false,
   };

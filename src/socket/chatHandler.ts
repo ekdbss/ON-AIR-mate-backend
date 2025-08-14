@@ -10,6 +10,7 @@ import {
   updateRoomVideoTime,
   getRoomVideoState,
   deleteRoomVideoState,
+  removeAllParticipantsFromRoom,
 } from './redisManager.js';
 import {
   saveRoomMessage,
@@ -18,7 +19,7 @@ import {
   getChatRoom,
 } from '../services/messageServices.js';
 import { roomInfoService } from '../services/roomInfoService.js';
-import { removeParticipant, isHost } from '../services/roomServices.js';
+import { isHost, getParticipants } from '../services/roomServices.js';
 import { chatMessageType, MessageType } from '../dtos/messageDto.js';
 
 export default function chatHandler(io: Server, socket: Socket) {
@@ -47,6 +48,13 @@ export default function chatHandler(io: Server, socket: Socket) {
       //redis
       const redis = await joinRoom(roomId, Number(userId), socket.id);
       console.log('[Socket] 입장 REDIS 처리: ', redis);
+      const broom = await prisma.room.findUnique({
+        where: { roomId },
+      });
+
+      if (!broom) {
+        socket.emit('error', { type: 'joinRoom', data: '방장이 탈퇴한 방입니다.' });
+      }
 
       io.to(roomId.toString()).emit('userJoined', {
         data: {
@@ -69,16 +77,16 @@ export default function chatHandler(io: Server, socket: Socket) {
        */
       //방장일 경우
       //북마크로 방 생성일 경우 -> room startTime으로 시작
-      const broom = await prisma.room.findUnique({
-        where: { roomId },
-      });
 
       if (role === 'host') {
         await setRoomVideoState(roomId, 'playing', broom?.startTime ?? 0);
         io.to(roomId.toString()).emit('video:play', {
-          roomId,
-          currentTime: 0,
-          updatedAt: Date.now(),
+          type: 'video:play',
+          data: {
+            roomId,
+            currentTime: 0,
+            updatedAt: Date.now(),
+          },
         });
         console.log('[Socket] [host] video:play 소캣 이벤트 전송 완료 ->', user.nickname);
       }
@@ -266,33 +274,54 @@ export default function chatHandler(io: Server, socket: Socket) {
       const parsedRoomId = typeof roomId === 'object' ? roomId.roomId : roomId;
       console.log('[leave Room] 파라미터 확인:', roomId, ', 파싱해서:', parsedRoomId);
       //퇴장 db 처리
-      const leaveDB = await removeParticipant(Number(parsedRoomId), userId);
-      console.log('leaveRoom 디비 처리:', leaveDB);
-      let role = 'participant';
-      if (leaveDB?.ishost === true) {
-        role = 'host';
-      }
+      //const leaveDB = await removeParticipant(Number(parsedRoomId), userId);
+      //let role = 'participant';
+      const role = await isHost(roomId, userId);
+      //redis 처리
       const leaveres = await leaveRoom(Number(parsedRoomId), Number(userId));
       console.log('[Socket] leaveRoom Redis 처리: ', leaveres);
       socket.leave(roomId.toString());
 
+      //현재 참여자 목록 업데이트
+      const nowParticipants = await getParticipants(roomId);
+
       //방 재생 정보 동기화 -멈춤
       if (role === 'host') {
-        io.to(roomId.toString()).emit('video:pause', { roomId, currentTime: 0 });
+        io.to(roomId.toString()).emit('video:pause', {
+          type: 'video:pause',
+          data: { roomId, currentTime: 0 },
+        });
+
+        io.to(roomId.toString()).emit('userLeft', {
+          type: 'userLeft',
+          data: {
+            leftUser: user.nickname,
+            role: role,
+            roomParticipants: nowParticipants,
+          },
+        });
+        //redis data 정리
         const leaveres2 = await deleteRoomVideoState(roomId);
-        console.log('[Socket] 방장 나감 Redis 처리: ', leaveres2);
+        const delRedis = await removeAllParticipantsFromRoom(roomId);
+        console.log('[Socket] 방장 나감 Redis 처리: ', leaveres2, '소캣 룸 처리:', delRedis);
+
+        // 남은 참가자 소켓 연결도 강제 중단
+        const socketsInRoom = await io.in(roomId.toString()).fetchSockets();
+        for (const socket of socketsInRoom) {
+          socket.leave(roomId.toString());
+          console.log('[Socket] 참가자 강퇴:', socket.data);
+        }
+      } else {
+        io.to(roomId.toString()).emit('userLeft', {
+          type: 'userLeft',
+          data: {
+            leftUser: user.nickname,
+            role: role,
+            roomParticipants: nowParticipants,
+          },
+        });
+        console.log('[Socket] 참가자 나감 참가자 목록 업데이트: ', nowParticipants);
       }
-
-      io.to(roomId.toString()).emit('userLeft', {
-        type: 'userLeft',
-        data: {
-          userId,
-          nickname: user.nickname,
-          role: role,
-          socketId: socket.id,
-        },
-      });
-
       socket.emit('success', { type: 'leaveRoom', data: '방 퇴장 성공' });
     } catch (err) {
       console.error('[Socket] leaveRoom error:', err); // 서버 로그 확인용
@@ -315,7 +344,10 @@ export default function chatHandler(io: Server, socket: Socket) {
       if (!isRoomHost) return; // 방장 아니면 무시
       const resRedis = await setRoomVideoState(roomId, 'playing', currentTime);
       console.log('[REDIS] 방 playing 재생 정보 저장: ', resRedis);
-      io.to(roomId.toString()).emit('video:play', { roomId, currentTime, updatedAt: Date.now() });
+      io.to(roomId.toString()).emit('video:play', {
+        type: 'video:sync',
+        data: { roomId, currentTime, updatedAt: Date.now() },
+      });
       console.log(
         '[Socket] video:play 소캣 이벤트 전송 완료 ->',
         user.nickname,
@@ -335,7 +367,10 @@ export default function chatHandler(io: Server, socket: Socket) {
       if (!(await isHost(roomId, userId))) return;
       const resRedis = await setRoomVideoState(roomId, 'paused', currentTime);
       console.log('[REDIS] 방 pause 재생 정보 저장: ', resRedis);
-      io.to(roomId.toString()).emit('video:pause', { roomId, currentTime });
+      io.to(roomId.toString()).emit('video:pause', {
+        type: 'video:pause',
+        data: { roomId, currentTime },
+      });
       console.log(
         '[Socket] video:pause 소캣 이벤트 전송 완료 ->',
         user.nickname,

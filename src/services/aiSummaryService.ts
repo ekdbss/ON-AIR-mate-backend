@@ -127,8 +127,7 @@ export class AiSummaryService {
     chatContent: string,
     videoTitle: string,
   ): Promise<ClaudeResponseDto> {
-    const systemPrompt = `당신은 채팅 내용을 분석하고 요약하는 전문가입니다. 
-응답은 반드시 유효한 JSON 형식으로만 해주세요.`;
+    const systemPrompt = `당신은 채팅 내용을 분석하고 요약하는 전문가입니다.`;
 
     const userPrompt = `다음은 "${videoTitle}" 영상을 함께 시청하며 나눈 채팅 내용입니다.
 
@@ -138,19 +137,17 @@ ${chatContent}
 위 채팅 내용을 분석하여 다음 두 가지를 한국어로 작성해주세요:
 
 1. 전체 대화 주제 요약 (1문장으로 간결하게 핵심 내용 정리), 딱딱한 AI스러운 말투사용 대신 "대부분 짜증이 난거 같아요!", "많이 슬픈가 보네요.." 등 친근한 형식으로 작성.
+
 2. 대화의 전반적인 감정 분석
 - 전체 대화를 100%로 보고, 감정별 "문장 수" 기준으로 비율 계산(기준 고정).
 - 주요 감정 3~5개를 선정하고, 높은 비율부터 내림차순으로 나열.
 - 표준 감정 카테고리: 기쁨, 슬픔, 분노, 놀람, 감동, 공감, 공포, 좌절, 절망, 당황
-  (필요 시 가장 가까운 카테고리로 매핑)
 - 각 감정에 해당하는 대표 문장 1~2개를 지정하고, 전체 대비 비율(%) 계산.
 - 백분율은 정수(%)로 반올림하되, 마지막 항목에서 합계가 정확히 100%가 되도록 보정.
 
-응답은 반드시 다음 JSON 형식으로만 해주세요:
-{
-  "topicSummary": "요약 내용",
-  "emotionAnalysis": "감정1 n%, 감정2 m%, 감정3 k% ..."
-}`;
+응답 형식:
+첫 번째 줄: 주제 요약
+두 번째 줄: 감정 분석 (감정1 n%, 감정2 m%, 감정3 k% 형식)`;
 
     try {
       const input: InvokeModelCommandInput = {
@@ -170,30 +167,29 @@ ${chatContent}
           ],
         }),
       };
-
       const command = new InvokeModelCommand(input);
       const response: InvokeModelCommandOutput = await bedrockClient.send(command);
 
-      try {
-        const responseBody = JSON.parse(new TextDecoder().decode(response.body)) as ClaudeResponse;
-        const responseText = responseBody.content[0]?.text || '{}';
-        const result = JSON.parse(responseText);
+      const responseBody = JSON.parse(new TextDecoder().decode(response.body)) as ClaudeResponse;
+      const responseText = responseBody.content[0]?.text || '';
 
-        if (!result.topicSummary || !result.emotionAnalysis) {
-          throw new Error('응답 형식 오류');
-        }
+      // AI 응답을 줄바꿈으로 분리
+      const lines = responseText
+        .trim()
+        .split('\n')
+        .filter(line => line.trim());
 
-        return {
-          topicSummary: result.topicSummary,
-          emotionAnalysis: result.emotionAnalysis,
-        };
-      } catch (parseError) {
-        console.error('Claude 응답 파싱 실패:', parseError);
-        throw new AppError('GENERAL_004', 'AI 응답 파싱에 실패했습니다.');
+      if (lines.length < 2) {
+        throw new Error('응답 형식 오류');
       }
-    } catch (error) {
-      console.error('Claude 모델 호출 실패:', error);
-      throw new AppError('GENERAL_004', 'AI 요약 생성에 실패했습니다.');
+
+      return {
+        topicSummary: lines[0].trim(),
+        emotionAnalysis: lines[1].trim(),
+      };
+    } catch (parseError) {
+      console.error('Claude 응답 파싱 실패:', parseError);
+      throw new AppError('GENERAL_004', 'AI 응답 파싱에 실패했습니다.');
     }
   }
 

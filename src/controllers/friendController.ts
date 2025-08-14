@@ -57,6 +57,7 @@ export const getFriendRequests = async (req: Request, res: Response, next: NextF
     }
 
     const requests = await friendService.getFriendRequests(userId);
+    console.log('요청 목록 조회:', requests);
     sendSuccess(res, requests);
   } catch (error) {
     next(error);
@@ -77,16 +78,29 @@ export const handleFriendRequest = async (req: Request, res: Response, next: Nex
     }
 
     if (isNaN(requestId)) {
+      console.error(`[친구 요청 처리] 유효하지 않은 요청 ID: ${req.params.requestId}`);
       throw new AppError('GENERAL_001', '유효하지 않은 요청 ID입니다.');
     }
 
     if (!action || !['ACCEPT', 'REJECT'].includes(action)) {
+      console.error(`[친구 요청 처리] 유효하지 않은 액션: ${action}`);
       throw new AppError('GENERAL_001', 'action은 ACCEPT 또는 REJECT여야 합니다.');
     }
 
     const message = await friendService.handleFriendRequest(userId, requestId, action);
     sendSuccess(res, { message });
   } catch (error) {
+    if (error instanceof AppError) {
+      if (error.errorCode === 'FRIEND_010') {
+        console.error(
+          `[친구 거절 409 에러] 사용자 ${req.user?.userId}가 이미 거절된 요청 ${req.params.requestId}를 다시 거절 시도`,
+        );
+      } else if (error.errorCode === 'FRIEND_006') {
+        console.error(`[친구 요청 404 에러] 존재하지 않는 친구 요청 ID: ${req.params.requestId}`);
+      } else if (error.errorCode === 'FRIEND_009') {
+        console.error(`[친구 요청 409 에러] 이미 처리된 요청 ID: ${req.params.requestId}`);
+      }
+    }
     next(error);
   }
 };

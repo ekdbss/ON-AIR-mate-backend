@@ -76,7 +76,8 @@ export const leaveRoom = async (req: Request, res: Response, next: NextFunction)
       return sendError(res, 'room에 소속되어 있지 않습니다.', 409);
     }
 
-    const message = await roomService.outRoom(roomId, userId);
+    const message = await roomService.removeParticipant(roomId, userId);
+    console.log('응답:', message);
 
     sendSuccess(res, message, 201);
   } catch (error) {
