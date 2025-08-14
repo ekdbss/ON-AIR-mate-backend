@@ -291,8 +291,8 @@ export default function chatHandler(io: Server, socket: Socket) {
         const leaveres2 = await deleteRoomVideoState(roomId);
         console.log('[Socket] 방장 나감 Redis 처리: ', leaveres2);
       }
-
-      //현재 참여자 목록 업데이트
+      else{
+        //현재 참여자 목록 업데이트
       const nowParticipants = await getParticipants(roomId);
 
       io.to(roomId.toString()).emit('userLeft', {
@@ -302,7 +302,8 @@ export default function chatHandler(io: Server, socket: Socket) {
           roomParticipants: nowParticipants,
         },
       });
-
+        console.log('[Socket] 참가자 나감 참가자 목록 업데이트: ', nowParticipants);
+      }
       socket.emit('success', { type: 'leaveRoom', data: '방 퇴장 성공' });
     } catch (err) {
       console.error('[Socket] leaveRoom error:', err); // 서버 로그 확인용
