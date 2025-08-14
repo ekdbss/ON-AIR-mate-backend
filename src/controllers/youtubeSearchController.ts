@@ -25,10 +25,17 @@ type YoutubeVideoResult = {
   uploadTime: string;
 };
 
+function hasVideoId(
+  item: YoutubeSearchItem,
+): item is YoutubeSearchItem & { id: { videoId: string } } {
+  return typeof item.id?.videoId === 'string' && item.id.videoId.length > 0;
+}
+
 export const searchYoutubeVideos = async (req: Request, res: Response): Promise<void> => {
   try {
     const query = req.query.query as string;
-    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+    const limitRaw = req.query.limit as string | undefined;
+    const limit = limitRaw !== undefined ? Number(limitRaw) : 10;
 
     // 입력값 검증
     if (!query || query.trim().length === 0) {
@@ -36,7 +43,7 @@ export const searchYoutubeVideos = async (req: Request, res: Response): Promise<
       return;
     }
 
-    if (limit < 1 || limit > 50) {
+    if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
       res.status(400).json({ success: false, message: 'limit은 1-50 사이여야 합니다.' });
       return;
     }
@@ -61,16 +68,16 @@ export const searchYoutubeVideos = async (req: Request, res: Response): Promise<
     });
 
     // videoId 없는 결과 필터링
-    const items = (response.data.items as YoutubeSearchItem[]).filter(item => item.id?.videoId);
+    const items = (response.data.items as YoutubeSearchItem[]).filter(hasVideoId);
 
-    // 2차 상세 정보 요청 (실패한 건 제외)
-    const results = await Promise.allSettled(
+    // 2차 상세 정보 요청 (실패한 건 null 처리)
+    const results = await Promise.all(
       items.map(async item => {
         try {
           const statsRes = await axios.get('https://www.googleapis.com/youtube/v3/videos', {
             params: {
               part: 'statistics,snippet',
-              id: item.id!.videoId,
+              id: item.id.videoId,
               key: apiKey,
             },
           });
@@ -79,27 +86,22 @@ export const searchYoutubeVideos = async (req: Request, res: Response): Promise<
           if (!videoData) return null;
 
           return {
-            videoId: item.id!.videoId!,
+            videoId: item.id.videoId,
             title: item.snippet.title,
             thumbnail: item.snippet.thumbnails.medium.url,
             channelName: item.snippet.channelTitle,
             viewCount: parseInt(videoData.statistics.viewCount, 10),
-            uploadTime: videoData.snippet.publishedAt, // DTO 필드명 일치
+            uploadTime: videoData.snippet.publishedAt,
           } as YoutubeVideoResult;
         } catch (err) {
-          console.error(`Failed to fetch video details for ID ${item.id!.videoId}`, err);
+          console.error(`Failed to fetch video details for ID ${item.id.videoId}`, err);
           return null;
         }
       }),
     );
 
     // null 제외
-    const videoList = results
-      .filter(
-        (r): r is PromiseFulfilledResult<YoutubeVideoResult> =>
-          r.status === 'fulfilled' && r.value !== null,
-      )
-      .map(r => r.value);
+    const videoList = results.filter((v): v is YoutubeVideoResult => v !== null);
 
     res.status(200).json({ success: true, data: videoList });
   } catch (error: unknown) {
