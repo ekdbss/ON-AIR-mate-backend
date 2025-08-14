@@ -457,29 +457,32 @@ export const inviteFriendToRoom = async (
       // 특정 소켓으로 방 초대 알림 전송
 
       io.to(friendSocketId).emit('receiveDirectMessage', {
-        senderId: result.inviter!.userId,
-        receiverId: friendId,
-        content: `${room.roomName} 방에 초대했습니다.`,
-        messageType: 'roomInvite', //('general','roomInvite','bookmarkShare')
-        createdAt: message?.createdAt,
-        roomInvite: {
-          inviter: {
-            userId: result.inviter!.userId,
-            nickname: result.inviter!.nickname,
-            profileImage: result.inviter!.profileImage,
+        type: 'receiveDirectMessage',
+        data: {
+          senderId: result.inviter!.userId,
+          receiverId: friendId,
+          content: `${room.roomName} 방에 초대했습니다.`,
+          messageType: 'roomInvite', //('general','roomInvite','bookmarkShare')
+          createdAt: message?.createdAt,
+          roomInvite: {
+            inviter: {
+              userId: result.inviter!.userId,
+              nickname: result.inviter!.nickname,
+              profileImage: result.inviter!.profileImage,
+            },
+            room: {
+              roomId: room.roomId,
+              roomName: room.roomName,
+              currentParticipants: currentParticipants,
+              maxParticipants: room.maxParticipants,
+              isPrivate: !room.isPublic,
+            },
+            video: {
+              title: result.video?.title || '',
+              thumbnail: result.video?.thumbnail || '',
+            },
+            invitedAt: new Date().toISOString(),
           },
-          room: {
-            roomId: room.roomId,
-            roomName: room.roomName,
-            currentParticipants: currentParticipants,
-            maxParticipants: room.maxParticipants,
-            isPrivate: !room.isPublic,
-          },
-          video: {
-            title: result.video?.title || '',
-            thumbnail: result.video?.thumbnail || '',
-          },
-          invitedAt: new Date().toISOString(),
         },
       });
 

@@ -21,6 +21,7 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import collectionRoute from './routes/collectionRoutes.js';
 import sharedCollectionRoute from './routes/sharedCollectionRoute.js';
 import blockRoutes from './routes/blockRoute.js';
+import bookmarkRoutes from './routes/bookmarkRoute.js';
 dotenv.config();
 
 const app: Express = express();
@@ -167,6 +168,7 @@ app.use('/api/friends', friendRoutes);
 app.use('/api/ai', aiSummaryRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/blocks', blockRoutes);
+app.use('/api/bookmarks', bookmarkRoutes);
 
 // 404 에러 핸들링
 app.use((req: Request, res: Response, next: NextFunction) => {
