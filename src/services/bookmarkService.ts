@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma.js';
+import type { Prisma } from '@prisma/client';
 import AppError from '../middleware/errors/AppError.js';
 import { tryParseBookmarkMessage } from '../utils/parseBookmark.js';
 
@@ -33,57 +34,138 @@ export const createBookmarkFromSocket = async (userId: number, roomId: number, m
 };
 
 // 2. 북마크 목록 조회 서비스
-export const getBookmarks = async (
-  userId: number,
-  options: { collectionId?: number; uncategorized?: boolean },
-) => {
-  const { collectionId, uncategorized } = options;
+interface GetBookmarksOptions {
+  collectionId?: number;
+  uncategorized?: boolean;
+}
 
-  const bookmarks = await prisma.bookmark.findMany({
-    where: {
-      userId,
-      ...(collectionId !== undefined && { collectionId }),
-      ...(uncategorized && { collectionId: null }),
-    },
-    orderBy: { createdAt: 'desc' },
+type BookmarkWithRelations = Prisma.BookmarkGetPayload<{
+  include: {
+    room: {
+      include: {
+        video: true; // Room.video (YoutubeVideo)
+      };
+    };
+    collection: {
+      select: { title: true };
+    };
+  };
+}>;
+
+export const getBookmarks = async (userId: number, options: GetBookmarksOptions) => {
+  const { collectionId, uncategorized } = options || {};
+
+  // 동적 where 구성
+  const where: Prisma.BookmarkWhereInput = { userId };
+  if (typeof collectionId === 'number') {
+    where.collectionId = collectionId;
+  } else if (uncategorized === true) {
+    where.collectionId = null;
+  }
+
+  // 필요한 관계 포함해서 조회 (room.video, bookmark.collection)
+  const rows: BookmarkWithRelations[] = await prisma.bookmark.findMany({
+    where,
     include: {
       room: {
-        select: {
-          roomName: true,
-          video: {
-            select: {
-              videoId: true,
-              title: true,
-              thumbnail: true,
-            },
-          },
+        include: {
+          video: true, // YoutubeVideo
         },
       },
       collection: {
-        select: {
-          title: true, // 북마크 컬렉션 제목
-        },
+        select: { title: true },
       },
     },
+    orderBy: { createdAt: 'desc' },
   });
 
-  const formatted = bookmarks.map(bookmark => ({
-    bookmarkId: bookmark.bookmarkId,
-    videoId: bookmark.room?.video?.videoId ?? null,
-    videoTitle: bookmark.room?.video?.title,
-    videoThumbnail: bookmark.room?.video?.thumbnail,
-    roomName: bookmark.room?.roomName ?? null,
-    message: bookmark.content,
-    timeline: bookmark.timeline,
-    createdAt: bookmark.createdAt,
-    collectionTitle: bookmark.collection?.title ?? null,
-  }));
+  // room 단위 그룹화 유틸
+  const groupByRoom = (list: BookmarkWithRelations[], includeCreatedAt: boolean) => {
+    const grouped: Array<{
+      roomData: {
+        roomId: number;
+        roomName: string | null;
+        videoTitle: string | null;
+        videoThumbnail: string | null;
+        collectionTitle: string | null;
+      };
+      bookmarks: Array<{
+        bookmarkId: number;
+        message: string;
+        timeline: number | null;
+        createdAt?: Date;
+      }>;
+    }> = [];
 
-  if (uncategorized) {
-    return { uncategorized: formatted, all: [] };
-  } else {
-    return { uncategorized: [], all: formatted };
+    const map = new Map<number, number>();
+
+    for (const b of list) {
+      const roomId = b.roomId;
+      const roomName = b.room?.roomName ?? null;
+      const videoTitle = b.room?.video?.title ?? null;
+      const videoThumbnail = b.room?.video?.thumbnail ?? null;
+      const bookmarkCollectionTitle = b.collection?.title ?? null;
+
+      let idx = map.get(roomId);
+      if (idx === undefined) {
+        grouped.push({
+          roomData: {
+            roomId,
+            roomName,
+            videoTitle,
+            videoThumbnail,
+            collectionTitle: bookmarkCollectionTitle,
+          },
+          bookmarks: [],
+        });
+        idx = grouped.length - 1;
+        map.set(roomId, idx);
+      } else {
+        if (grouped[idx].roomData.collectionTitle == null && bookmarkCollectionTitle != null) {
+          grouped[idx].roomData.collectionTitle = bookmarkCollectionTitle;
+        }
+      }
+
+      const item: {
+        bookmarkId: number;
+        message: string;
+        timeline: number | null;
+        createdAt?: Date;
+      } = {
+        bookmarkId: b.bookmarkId,
+        message: b.content ?? '',
+        timeline: b.timeline ?? 0,
+      };
+
+      if (includeCreatedAt) {
+        item.createdAt = b.createdAt;
+      }
+
+      grouped[idx].bookmarks.push(item);
+    }
+
+    return grouped;
+  };
+
+  if (typeof collectionId === 'number') {
+    return {
+      uncategorized: [],
+      all: groupByRoom(rows, true),
+    };
   }
+
+  if (uncategorized === true) {
+    return {
+      uncategorized: groupByRoom(rows, false),
+      all: [],
+    };
+  }
+
+  const uncategorizedList = rows.filter(b => b.collectionId == null);
+  return {
+    uncategorized: groupByRoom(uncategorizedList, false),
+    all: groupByRoom(rows, true),
+  };
 };
 
 // 3. 북마크 삭제 서비스

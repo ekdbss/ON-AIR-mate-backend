@@ -102,7 +102,7 @@ export class ActiveRoomService {
 
     // 5. 데이터 분리 (continueWatching: 이전에 참여했던 방 / onAirRooms: 활성화된 모든 방)
     const continueWatching: RoomDto[] = [];
-    const onAirRooms = roomDtos;
+    let onAirRooms = roomDtos;
 
     if (userId) {
       // 사용자가 참여했던 방 목록을 조회
@@ -115,7 +115,7 @@ export class ActiveRoomService {
           },
         },
         orderBy: { joinedAt: 'desc' },
-        take: 3,
+        //take: 3,
         include: {
           room: {
             include: {
@@ -125,6 +125,14 @@ export class ActiveRoomService {
           },
         },
       });
+
+      // userRooms의 roomId 목록을 Set으로 만들어서 빠르게 체크할 수 있게 함
+      const userRoomIds = new Set(userRooms.map(ur => ur.room.roomId));
+      console.log('유저 참여방:', userRoomIds);
+
+      // onAirRooms에서 userRoomIds에 포함된 방 제외
+      onAirRooms = onAirRooms.filter(room => !userRoomIds.has(room.roomId));
+
       userRooms.forEach(userRoom => {
         const room = userRoom.room;
         const video = videoMap.get(room.videoId);
