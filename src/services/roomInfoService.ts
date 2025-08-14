@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import { RoomInfoResponseDto } from '../dtos/roomInfoDto.js';
-import { formatISO8601Duration } from '../utils/formatters.js';
 import AppError from '../middleware/errors/AppError.js';
 
 const prisma = new PrismaClient();
@@ -42,12 +41,13 @@ const getRoomInfoById = async (roomId: number): Promise<RoomInfoResponseDto> => 
     where: { videoId: room.videoId },
   });
 
-  console.log('[Service] Video data:', video);
+  console.log('[Service] Video data:', video?.title, ', 전체 시간: ', video?.duration);
 
   if (!video) {
     console.error(`[Service] Video for room ID ${roomId} not found.`);
     throw new AppError('ROOM_007', `ID가 ${roomId}인 방의 비디오 정보를 찾을 수 없습니다.`);
   }
+  const nowTime = formatHHMMSS(room.startTime);
 
   const roomInfo: RoomInfoResponseDto = {
     roomId: room.roomId,
@@ -56,7 +56,7 @@ const getRoomInfoById = async (roomId: number): Promise<RoomInfoResponseDto> => 
     videoId: video.videoId,
     videoTitle: video.title,
     videoThumbnail: video.thumbnail ?? '',
-    duration: formatISO8601Duration(video.duration ?? 'PT0S'),
+    duration: nowTime, //방 현재 영상 재생 시간
 
     hostNickname: room.host.nickname,
     hostProfileImage: room.host.profileImage || '',
@@ -76,3 +76,17 @@ const getRoomInfoById = async (roomId: number): Promise<RoomInfoResponseDto> => 
 export const roomInfoService = {
   getRoomInfoById,
 };
+
+//시간 포맷 형식 변환
+function formatHHMMSS(seconds: number) {
+  const hrs = Math.floor(seconds / 3600)
+    .toString()
+    .padStart(2, '0');
+  const mins = Math.floor((seconds % 3600) / 60)
+    .toString()
+    .padStart(2, '0');
+  const secs = Math.floor(seconds % 60)
+    .toString()
+    .padStart(2, '0');
+  return `${hrs}:${mins}:${secs}`;
+}

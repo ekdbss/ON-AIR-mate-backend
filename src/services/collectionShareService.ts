@@ -63,20 +63,23 @@ export const shareCollectionService = async (
 
         if (friendSocketId) {
           io.to(friendSocketId).emit('receiveDirectMessage', {
-            senderId: message.senderId,
-            receiverId: message.receiverId,
-            content: contentObj.message,
-            messageType: 'collectionShare', //('general','roomInvite','bookmarkShare')
-            createdAt: message.createdAt,
-            collection: {
-              collectionId: collection.collectionId,
-              title: collection.title,
-              description: collection.description,
-              bookmarkCount: collection.bookmarkCount,
-              visibility: collection.visibility,
-              coverImage: collection.coverImage,
-              createdAt: collection.createdAt,
-              updatedAt: collection.updatedAt,
+            type: 'receiveDirectMessage',
+            data: {
+              senderId: message.senderId,
+              receiverId: message.receiverId,
+              content: contentObj.message,
+              messageType: 'collectionShare', //('general','roomInvite','bookmarkShare')
+              createdAt: message.createdAt,
+              collection: {
+                collectionId: collection.collectionId,
+                title: collection.title,
+                description: collection.description,
+                bookmarkCount: collection.bookmarkCount,
+                visibility: collection.visibility,
+                coverImage: collection.coverImage,
+                createdAt: collection.createdAt,
+                updatedAt: collection.updatedAt,
+              },
             },
           });
           console.log(`컬렉션 공유 채팅: ${message}`);

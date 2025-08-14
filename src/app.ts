@@ -16,13 +16,12 @@ import { initSocketServer } from './socket/index.js';
 import redis from './redis.js';
 import aiSummaryRoutes from './routes/aiSummaryRoutes.js';
 import roomRoutes from './routes/roomRoute.js';
-import bookmarkRoutes from './routes/bookmarkRoute.js';
 import chatDirectRoutes from './routes/chatDirectRoute.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import collectionRoute from './routes/collectionRoutes.js';
 import sharedCollectionRoute from './routes/sharedCollectionRoute.js';
 import blockRoutes from './routes/blockRoute.js';
-
+import bookmarkRoutes from './routes/bookmarkRoute.js';
 dotenv.config();
 
 const app: Express = express();
