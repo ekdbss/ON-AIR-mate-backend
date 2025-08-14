@@ -107,6 +107,16 @@ async function getUserRooms(userId: number) {
   return rooms; // string[] 형태로 반환
 }
 
+export const getRoomParticipants = async (roomId: number): Promise<string[]> => {
+  try {
+    const participants = await redis.smembers(ROOM_PARTICIPANTS_KEY(roomId));
+    return participants;
+  } catch (err) {
+    console.error(`[Redis] getRoomParticipants Error:`, err);
+    return [];
+  }
+};
+
 export const isParticipant = async (roomId: number, userId: number): Promise<boolean> => {
   console.log('[Redis] isParticipant 이벤트 처리');
   const key = ROOM_PARTICIPANTS_KEY(roomId);

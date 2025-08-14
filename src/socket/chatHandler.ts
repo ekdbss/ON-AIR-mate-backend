@@ -18,7 +18,7 @@ import {
   getChatRoom,
 } from '../services/messageServices.js';
 import { roomInfoService } from '../services/roomInfoService.js';
-import { removeParticipant, isHost } from '../services/roomServices.js';
+import { removeParticipant, isHost, getParticipants } from '../services/roomServices.js';
 import { chatMessageType, MessageType } from '../dtos/messageDto.js';
 
 export default function chatHandler(io: Server, socket: Socket) {
@@ -267,7 +267,6 @@ export default function chatHandler(io: Server, socket: Socket) {
       console.log('[leave Room] 파라미터 확인:', roomId, ', 파싱해서:', parsedRoomId);
       //퇴장 db 처리
       const leaveDB = await removeParticipant(Number(parsedRoomId), userId);
-      console.log('leaveRoom 디비 처리:', leaveDB);
       let role = 'participant';
       if (leaveDB?.ishost === true) {
         role = 'host';
@@ -283,13 +282,14 @@ export default function chatHandler(io: Server, socket: Socket) {
         console.log('[Socket] 방장 나감 Redis 처리: ', leaveres2);
       }
 
+      //현재 참여자 목록 업데이트
+      const nowParticipants = await getParticipants(roomId);
+
       io.to(roomId.toString()).emit('userLeft', {
         type: 'userLeft',
         data: {
-          userId,
-          nickname: user.nickname,
-          role: role,
-          socketId: socket.id,
+          leftUser: user.nickname,
+          roomParticipants: nowParticipants,
         },
       });
 
