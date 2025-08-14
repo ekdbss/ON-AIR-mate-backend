@@ -6,6 +6,7 @@ import { getIO } from '../socket/index.js';
 import redis from '../redis.js';
 import { USER_SOCKET_KEY } from '../socket/redisManager.js';
 import { saveDirectMessage } from './messageServices.js';
+import { ConverseOutputFilterSensitiveLog } from '@aws-sdk/client-bedrock-runtime';
 
 // 타입 정의
 interface Friend {
@@ -457,7 +458,7 @@ export const inviteFriendToRoom = async (
 
     // Redis에서 친구의 socketId 찾기
     const friendSocketId = await redis.get(USER_SOCKET_KEY(friendId));
-
+    console.log('친구 소캣: ',friendSocketId);
     if (friendSocketId) {
       // 특정 소켓으로 방 초대 알림 전송
 

@@ -316,7 +316,6 @@ export const getDirectMessages = async (userId: number, receiverId: number) => {
         if (collection) {
           base.content = contentObj.message;
           base = { ...base, collection };
-          console.log('basecollection:', base);
         }
       } catch {
         console.log('[messagType: collectionShare] parsing error or no room found');
@@ -324,8 +323,9 @@ export const getDirectMessages = async (userId: number, receiverId: number) => {
     } else if (msg.type === 'roomInvite' && msg.content) {
       try {
         const contentObj = JSON.parse(msg.content);
+        console.log('roomInvte 파싱:',contentObj);
         const roomId = contentObj.roomId;
-        const room = await prisma.room.findUnique({
+        /* const room = await prisma.room.findUnique({
           where: { roomId },
           select: {
             roomId: true,
@@ -336,14 +336,19 @@ export const getDirectMessages = async (userId: number, receiverId: number) => {
               },
             },
           },
-        });
-        if (room) {
-          console.log('ㅍㅅㅇㄴㄹ닝러: ', contentObj);
-          console.log('ㅍㅅㅇㄴㄹ닝러: ', contentObj.message);
-          base.content = contentObj.message;
-          base = { ...base, room };
-          console.log('baseroom:', base);
+        }); */
+        
+        base.content = contentObj.message;
+          let room = {
+            roomId,
+            roomName : contentObj.roomName,
+            video :{
+              title:contentObj.videoTitle|| '',
+            }
         }
+        base = { ...base, room };
+        console.log('baseroom -room:', room);
+        
       } catch {
         // parsing error or no room found
         console.log('[messagType: roomInvite] parsing error or no room found');
