@@ -464,7 +464,7 @@ export const inviteFriendToRoom = async (
           receiverId: friendId,
           content: `${room.roomName} 방에 초대했습니다.`,
           messageType: 'roomInvite', //('general','roomInvite','bookmarkShare')
-          timestamp: message?.createdAt,
+          timestamp: message?.timestamp,
           room: {
             roomId: room.roomId,
             roomName: room.roomName,

@@ -70,7 +70,7 @@ export const shareCollectionService = async (
               receiverId: message.receiverId,
               content: contentObj.message,
               messageType: 'collectionShare', //('general','roomInvite','bookmarkShare')
-              timestamp: message.createdAt,
+              timestamp: message.timestamp,
               collection: {
                 collectionId: collection.collectionId,
                 title: collection.title,
