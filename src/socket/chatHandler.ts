@@ -388,10 +388,6 @@ export default function chatHandler(io: Server, socket: Socket) {
     try {
       if (!(await isHost(roomId, userId))) return;
       const updres = await updateRoomVideoTime(roomId, currentTime);
-      io.to(roomId.toString()).emit('video:sync', {
-        type: 'video:pause',
-        data: { roomId, currentTime },
-      });
       console.log('[REDIS] 방 재생 정보 동기화 업데이트: ', updres);
       socket.emit('success', { type: 'video:sync', data: '방 영상 동기화 업데이트 성공' });
     } catch (err) {
