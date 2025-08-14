@@ -34,10 +34,10 @@ const router = express.Router();
  *             properties:
  *               roomId:
  *                 type: number
- *                 example: 1
+ *                 example: 2
  *               message:
  *                 type: string
- *                 example: "01:23:45 문문문보경이 나왔다"
+ *                 example: "00:03:45 제 최애 파트!"
  *                 description: |
  *                   북마크 메시지는 `MM:SS 내용` 또는 `HH:MM:SS 내용` 형식으로 작성해야 합니다.
  *                   - 예: "12:34 삼구삼진", "01:02:30 병살 가자"
@@ -92,78 +92,82 @@ router.post('/', requireAuth, createBookmark);
  *                 data:
  *                   type: object
  *                   properties:
- *                     all:
- *                       type: array
- *                       description: 컬렉션에 속한 북마크들
- *                       items:
- *                         type: object
- *                         properties:
- *                           bookmarkId:
- *                             type: number
- *                             example: 1
- *                           videoId:
- *                             type: string
- *                             example: "abc123xyz"
- *                           videoTitle:
- *                             type: string
- *                             example: "흥미로운 유튜브 영상"
- *                           videoThumbnail:
- *                             type: string
- *                             example: "https://img.youtube.com/vi/abc123xyz/mqdefault.jpg"
- *                           roomName:
- *                             type: string
- *                             example: "야구 경기 3회 초 하이라이트"
- *                             nullable: true
- *                           message:
- *                             type: string
- *                             example: "00:23 병살 플레이"
- *                           timeline:
- *                             type: number
- *                             example: 23
- *                           createdAt:
- *                             type: string
- *                             format: date-time
- *                             example: "2025-08-07T12:34:56.000Z"
- *                           collectionTitle:
- *                             type: string
- *                             nullable: true
- *                             example: "재밌는 장면 모음"
  *                     uncategorized:
  *                       type: array
- *                       description: 컬렉션에 속하지 않은 북마크들
+ *                       description: 컬렉션에 속하지 않은 북마크 그룹
  *                       items:
  *                         type: object
  *                         properties:
- *                           bookmarkId:
- *                             type: number
- *                             example: 2
- *                           videoId:
- *                             type: string
- *                             example: "def456uvw"
- *                           videoTitle:
- *                             type: string
- *                             example: "두 번째 영상"
- *                           videoThumbnail:
- *                             type: string
- *                             example: "https://img.youtube.com/vi/def456uvw/mqdefault.jpg"
- *                           roomName:
- *                             type: string
- *                             example: "야구 경기 3회 초 하이라이트"
- *                             nullable: true
- *                           message:
- *                             type: string
- *                             example: "01:02 감동적인 장면"
- *                           timeline:
- *                             type: number
- *                             example: 62
- *                           createdAt:
- *                             type: string
- *                             format: date-time
- *                             example: "2025-08-06T18:45:12.000Z"
- *                           collectionTitle:
- *                             type: string
- *                             nullable: true
- *                             example: null
+ *                           roomData:
+ *                             type: object
+ *                             properties:
+ *                               roomId:
+ *                                 type: number
+ *                                 example: 333
+ *                               videoTitle:
+ *                                 type: string
+ *                                 example: "영상제목"
+ *                               videoThumbnail:
+ *                                 type: string
+ *                                 example: "https://img.youtube.com/vi/abc123xyz/mqdefault.jpg"
+ *                               collectionTitle:
+ *                                 type: string
+ *                                 nullable: true
+ *                                 example: null
+ *                           bookmarks:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 bookmarkId:
+ *                                   type: number
+ *                                   example: 456
+ *                                 message:
+ *                                   type: string
+ *                                   example: "00:15:30 재밌는 장면"
+ *                                 timeline:
+ *                                   type: number
+ *                                   example: 930
+ *                     all:
+ *                       type: array
+ *                       description: 모든 북마크 그룹 (컬렉션 포함 + 미분류 포함)
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           roomData:
+ *                             type: object
+ *                             properties:
+ *                               roomId:
+ *                                 type: number
+ *                                 example: 393
+ *                               videoTitle:
+ *                                 type: string
+ *                                 example: "영상제목"
+ *                               videoThumbnail:
+ *                                 type: string
+ *                                 example: "https://img.youtube.com/vi/def456uvw/mqdefault.jpg"
+ *                               collectionTitle:
+ *                                 type: string
+ *                                 nullable: true
+ *                                 example: "내가 좋아하는 영상들"
+ *                           bookmarks:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 bookmarkId:
+ *                                   type: number
+ *                                   example: 457
+ *                                 message:
+ *                                   type: string
+ *                                   example: "00:20:15 명장면"
+ *                                 timeline:
+ *                                   type: number
+ *                                   example: 1215
+ *                                 createdAt:
+ *                                   type: string
+ *                                   format: date-time
+ *                                   example: "2025-01-01T12:30:00Z"
  *       401:
  *         description: 인증 실패
  */
