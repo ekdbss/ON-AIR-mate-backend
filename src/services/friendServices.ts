@@ -500,7 +500,7 @@ export const inviteFriendToRoom = async (
       receiverId: friendId,
       content: JSON.stringify({
         roomId: room.roomId,
-        roomName: room.roomName,
+        roomTitle: room.roomName,
         hostNickname: host?.nickname,
         hostProfileImage: host?.profileImage,
         hostPopularity: host?.popularity,
@@ -539,7 +539,7 @@ export const inviteFriendToRoom = async (
           timestamp: message?.timestamp,
           room: {
             roomId: room.roomId,
-            roomName: room.roomName,
+            roomTitle: room.roomName,
             hostNickname: host?.nickname,
             hostProfileImage: host?.profileImage,
             hostPopularity: host?.popularity,

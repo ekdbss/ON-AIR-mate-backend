@@ -29,7 +29,7 @@ interface CollectionMessage extends BaseMessage {
 interface RoomMessage extends BaseMessage {
   room: {
     roomId: number;
-    roomName: string;
+    roomTitle: string;
     video: {
       title: string;
     };
@@ -269,10 +269,19 @@ export const getDirectMessages = async (userId: number, receiverId: number) => {
     } else if (msg.type === 'roomInvite' && msg.content) {
       try {
         const contentObj = JSON.parse(msg.content);
-        const { message, ...room1 } = contentObj;
+        const { message, roomName, ...room1 } = contentObj;
         base.content = message;
-        base = { ...base, room: room1 };
-        console.log('baseroom -room:', room1);
+        let room;
+        if (roomName) {
+          room = {
+            roomTitle: roomName,
+            ...room1,
+          };
+        } else {
+          room = room1;
+        }
+
+        base = { ...base, room };
       } catch {
         // parsing error or no room found
         console.log('[messagType: roomInvite] parsing error or no room found');
@@ -282,6 +291,5 @@ export const getDirectMessages = async (userId: number, receiverId: number) => {
 
     result.push(base);
   }
-  console.log(result);
   return result;
 };

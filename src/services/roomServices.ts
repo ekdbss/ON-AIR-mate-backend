@@ -194,8 +194,6 @@ export const removeParticipant = async (roomId: number, userId: number) => {
     },
   });
 
-  console.log('parti:ddddd', participant);
-
   if (!participant) {
     console.warn(`[방 탈퇴] 해당 유저(${userId})는 방(${roomId}) 참가자가 아님`);
     return null;
@@ -231,7 +229,6 @@ export const removeParticipant = async (roomId: number, userId: number) => {
     where: { participantId: participant.participantId },
     data: { left_at: new Date() },
   });
-  console.log('parti:참가자임 ', updatedParticipant);
 
   return {
     message: '방이 삭제되었습니다(참가자 탈퇴).',
