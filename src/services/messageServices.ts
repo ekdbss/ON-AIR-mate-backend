@@ -208,14 +208,68 @@ export const saveDirectMessage = async (senderId: number, payload: SendDirectMes
     },
   });
 
-  return {
-    messageId: message.messageId,
-    senderId,
-    receiverId,
-    content: message.content,
-    messageType: message.type,
-    timestamp: message.createdAt,
-  };
+    let base: DirectMessage = {
+      messageId: message.messageId,
+      senderId: message.userId,
+      receiverId,
+      content: message.content,
+      messageType: message.type,
+      timestamp: message.createdAt.toISOString(),
+    };
+
+    // 메시지 타입에 따라 추가 정보 붙이기
+    if (message.type === 'collectionShare' && message.content) {
+      try {
+        const contentObj = JSON.parse(message.content);
+        const collectionId = contentObj.collectionId;
+        const collection = await prisma.collection.findUnique({
+          where: { collectionId },
+          select: {
+            collectionId: true,
+            title: true,
+            description: true,
+            bookmarkCount: true,
+            visibility: true,
+            coverImage: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        });
+        if (collection) {
+          base.content = contentObj.message;
+          base = { ...base, collection };
+        }
+      } catch {
+        console.log('[messagType: collectionShare] parsing error or no room found');
+      }
+    } else if (message.type === 'roomInvite' && message.content) {
+      try {
+        const contentObj = JSON.parse(message.content);
+        const roomId = contentObj.roomId;
+        const room = await prisma.room.findUnique({
+          where: { roomId },
+          select: {
+            roomId: true,
+            roomName: true,
+            video: {
+              select: {
+                title: true,
+              },
+            },
+          },
+        });
+        if (room) {
+          base.content = contentObj.message;
+          base = { ...base, room };
+        }
+      } catch {
+        // parsing error or no room found
+        console.log('[messagType: roomInvite] parsing error or no room found');
+      }
+    }
+    // general 등 다른 타입은 그대로
+    console.log('메시지 저장:',base);
+  return base;
 };
 
 //채팅 내역 조회
@@ -262,6 +316,7 @@ export const getDirectMessages = async (userId: number, receiverId: number) => {
         if (collection) {
           base.content = contentObj.message;
           base = { ...base, collection };
+           console.log('basecollection:',base);
         }
       } catch {
         console.log('[messagType: collectionShare] parsing error or no room found');
@@ -283,8 +338,11 @@ export const getDirectMessages = async (userId: number, receiverId: number) => {
           },
         });
         if (room) {
+          console.log('ㅍㅅㅇㄴㄹ닝러: ',contentObj);
+          console.log('ㅍㅅㅇㄴㄹ닝러: ',contentObj.message);
           base.content = contentObj.message;
           base = { ...base, room };
+          console.log('baseroom:',base);
         }
       } catch {
         // parsing error or no room found
@@ -295,5 +353,6 @@ export const getDirectMessages = async (userId: number, receiverId: number) => {
 
     result.push(base);
   }
+  console.log(result);
   return result;
 };
