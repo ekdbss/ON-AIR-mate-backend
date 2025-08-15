@@ -12,11 +12,15 @@ ON-AIR mate는 친구, 팬, 혹은 새로운 사람들과 유튜브 영상을 �
 -   **친구 & DM**: 새로운 친구 추천, 1:1 메시지, 컬렉션 공유
 -   **AI 채팅 요약**: 채팅방 종료 시 대화 내용 자동 요약 및 감정 분석
 
-## 🧑‍💻 팀원 소개 (Team)
+## 🧑‍💻 팀원 소개
 
 | [<img src="https://github.com/ekdbss.png" width="150px"/>](https://github.com/ekdbss) | [<img src="https://github.com/DongilMin.png" width="150px"/>](https://github.com/DongilMin) | [<img src="https://github.com/dltjwls02.png" width="150px"/>](https://github.com/dltjwls02) | [<img src="https://github.com/gaaahee.png" width="150px"/>](https://github.com/gaaahee) |
 | :------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------: |
 |               [김다윤](https://github.com/ekdbss)               |                [민동일](https://github.com/DongilMin)                |                [이서진](https://github.com/dltjwls02)                |                [임가희](https://github.com/gaaahee)                |
+
+## ✨ Server Architecture
+
+![Server Architecture](./assets/ON-AIR-mate-diagram.png)
 
 🚀 배포 정보 (운영 중)
 🌐 프로덕션 서버
