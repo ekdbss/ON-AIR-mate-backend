@@ -71,9 +71,10 @@ export const uploadProfileImageHandler = [
     try {
       const userId = req.user?.userId;
 
-      if (!userId) {
-        throw new AppError('AUTH_007');
-      }
+      // 토큰 검증 제거 - userId 체크를 하지 않음
+      // if (!userId) {
+      //   throw new AppError('AUTH_007');
+      // }
 
       // multer-s3를 사용하면 req.file에 location과 key가 추가됩니다
       const file = req.file as Express.MulterS3.File;
@@ -85,21 +86,22 @@ export const uploadProfileImageHandler = [
       // S3에 업로드된 파일의 URL
       const profileImageUrl = file.location;
 
-      // DB에 URL 저장 - 실패시 S3 파일 롤백
-      try {
-        await userService.updateUserProfile(userId, {
-          profileImage: profileImageUrl,
-        });
-      } catch (dbError) {
-        // S3에서 파일 삭제 시도
+      // DB 업데이트는 userId가 있을 때만 수행
+      if (userId) {
         try {
-          await deleteS3Object(file.location);
-          console.log(`DB 업데이트 실패로 S3 파일 삭제: ${file.key}`);
-        } catch (s3Error) {
-          console.error('S3 파일 삭제 실패:', s3Error);
-          // 삭제 실패해도 원래 에러를 전달
+          await userService.updateUserProfile(userId, {
+            profileImage: profileImageUrl,
+          });
+        } catch (dbError) {
+          // S3에서 파일 삭제 시도
+          try {
+            await deleteS3Object(file.location);
+            console.log(`DB 업데이트 실패로 S3 파일 삭제: ${file.key}`);
+          } catch (s3Error) {
+            console.error('S3 파일 삭제 실패:', s3Error);
+          }
+          throw dbError;
         }
-        throw dbError; // DB 에러를 다시 던짐
       }
 
       sendSuccess(res, {

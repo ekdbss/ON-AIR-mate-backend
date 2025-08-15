@@ -23,14 +23,14 @@ const getRoomInfoById = async (roomId: number): Promise<RoomInfoResponseDto> => 
     },
   });
 
-  console.log('[Service] Room data:', room);
+  console.log('[Service] Room:', room?.roomName);
 
   if (!room) {
     console.error(`[Service] Room with ID ${roomId} not found.`);
     throw new AppError('ROOM_001', `ID가 ${roomId}인 방을 찾을 수 없습니다.`);
   }
 
-  console.log('[Service] Host data:', room.host);
+  console.log('[Service] Host:', room.host.loginId);
 
   if (!room.host) {
     console.error(`[Service] Host for room ID ${roomId} not found.`);
@@ -56,7 +56,7 @@ const getRoomInfoById = async (roomId: number): Promise<RoomInfoResponseDto> => 
     videoId: video.videoId,
     videoTitle: video.title,
     videoThumbnail: video.thumbnail ?? '',
-    duration: nowTime, //방 현재 영상 재생 시간
+    duration: nowTime, //방 영상 재생 시작 시간
 
     hostNickname: room.host.nickname,
     hostProfileImage: room.host.profileImage || '',

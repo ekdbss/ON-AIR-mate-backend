@@ -42,6 +42,7 @@ export const getDirectMessage = async (req: Request, res: Response, next: NextFu
     }
 
     const messages = await messageService.getDirectMessages(userId, receiverId);
+    console.log('res:', messages);
 
     sendSuccess(res, messages, 201);
   } catch (error) {
