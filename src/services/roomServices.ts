@@ -122,6 +122,7 @@ export const isHost = async (roomId: number, userId: number) => {
     },
   });
   //return participant !== null && participant.left === null;
+  console.log('role:', participant?.role);
   return participant?.role;
 };
 
@@ -208,16 +209,18 @@ export const removeParticipant = async (roomId: number, userId: number) => {
       data: { left_at: new Date() },
     });
 
-    // 방 삭제 ()
-    await prisma.room.delete({
+    // Room 상태 업데이트
+    await prisma.room.update({
       where: { roomId: roomId },
+      data: { isActive: false, currentParticipants: 0 },
     });
 
-    const checkRoom = await prisma.room.findUnique({
-      where: { roomId: roomId },
+    const remaining = await prisma.roomParticipant.count({
+      where: { roomId: roomId, left_at: null },
     });
-    console.log('room DB 삭제 확인: 0', checkRoom);
-    if (checkRoom) {
+
+    console.log('room DB 삭제 확인: 0', remaining);
+    if (remaining !== 0) {
       return { message: '방이 삭제 실패하였습니다.', participant: 'everyone', ishost: true };
     }
     return { message: '방이 삭제되었습니다(호스트 탈퇴).', participant: 'everyone', ishost: true };

@@ -121,44 +121,71 @@ export const shareCollectionService = async (
   return results;
 };
 
-export const copyCollectionService = async (receiverId: number, collectionId: number) => {
+export const copyCollectionService = async (receiverId: number, originalCollectionId: number) => {
   // 1) 컬렉션 정보 조회
-  const collection = await prisma.collection.findUnique({
-    where: { collectionId },
+  const originalCollection = await prisma.collection.findUnique({
+    where: { collectionId: originalCollectionId },
+    include: {
+      bookmarks: true,
+    },
   });
 
-  if (!collection) throw new AppError('COLLECTION_001', '컬렉션을 찾을 수 없습니다.');
+  if (!originalCollection) throw new AppError('COLLECTION_001', '컬렉션을 찾을 수 없습니다.');
 
-  if (collection.userId !== receiverId) {
-    if (collection.visibility === 'private') {
-      throw new AppError('COLLECTION_003', '비공개 컬렉션에 접근할 권한이 없습니다.');
-    }
-    if (collection.visibility === 'friends') {
-      const friendship = await prisma.friendship.findFirst({
-        where: {
-          status: 'accepted',
-          OR: [
-            { requestedBy: receiverId, requestedTo: collection.userId },
-            { requestedBy: collection.userId, requestedTo: receiverId },
-          ],
-        },
-      });
-      if (!friendship) {
-        throw new AppError('COLLECTION_003', '친구만 접근할 수 있는 컬렉션입니다.');
-      }
+  if (originalCollection.userId === receiverId) {
+    throw new AppError('COLLECTION_001', '원본 컬렉션 소유자입니다.');
+  }
+
+  if (originalCollection.visibility === 'private') {
+    throw new AppError('COLLECTION_003', '비공개 컬렉션에 접근할 권한이 없습니다.');
+  }
+  if (originalCollection.visibility === 'friends') {
+    const friendship = await prisma.friendship.findFirst({
+      where: {
+        status: 'accepted',
+        OR: [
+          { requestedBy: receiverId, requestedTo: originalCollection.userId },
+          { requestedBy: originalCollection.userId, requestedTo: receiverId },
+        ],
+      },
+    });
+    if (!friendship) {
+      throw new AppError('COLLECTION_003', '친구만 접근할 수 있는 컬렉션입니다.');
     }
   }
 
+  //내 컬렉션 db에 추가
   const newCollection = await prisma.collection.create({
     data: {
       userId: receiverId,
-      title: collection.title,
-      description: collection.description,
-      bookmarkCount: collection.bookmarkCount,
-      visibility: collection.visibility,
-      coverImage: collection.coverImage,
+      title: originalCollection.title,
+      description: originalCollection.description,
+      bookmarkCount: originalCollection.bookmarkCount,
+      visibility: originalCollection.visibility,
+      coverImage: originalCollection.coverImage,
     },
   });
+
+  //내 북마크 db에 추가
+  //이미 있는지 확인하고 없으면 새로 생성하기
+
+  // 3. 북마크 복사
+  let copiedBookmarks;
+  if (originalCollection.bookmarks.length > 0) {
+    copiedBookmarks = await prisma.bookmark.createMany({
+      data: originalCollection.bookmarks.map(bm => ({
+        userId: receiverId,
+        roomId: bm.roomId,
+        title: bm.title,
+        content: bm.content,
+        timeline: bm.timeline,
+        collectionId: newCollection.collectionId,
+        originalBookmarkId: bm.bookmarkId,
+      })),
+    });
+  }
+
+  console.log('카피 북마크 목록: ', copiedBookmarks);
 
   return newCollection;
 };
