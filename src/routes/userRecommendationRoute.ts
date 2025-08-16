@@ -74,9 +74,12 @@ router.post('/daily', requireAuth, createDailyRecommendation);
  *                   properties:
  *                     canRecommend:
  *                       type: boolean
+ *                       example: true
  *                     lastRecommendedAt:
  *                       type: string
  *                       format: date-time
+ *                       nullable: true   # <-- 추가
+ *                       example: null
  *       400:
  *         description: 에러 메시지
  */
