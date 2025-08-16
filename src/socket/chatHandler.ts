@@ -275,9 +275,10 @@ export default function chatHandler(io: Server, socket: Socket) {
       console.log('[leave Room] 파라미터 확인:', roomId, ', 파싱해서:', parsedRoomId);
 
       const role = await isHost(Number(parsedRoomId), userId);
+
       //redis 처리
       const leaveres = await leaveRoom(Number(parsedRoomId), Number(userId));
-      console.log('[Socket] leaveRoom Redis 처리: ', leaveres);
+      console.log('[leave Room] [Socket] leaveRoom Redis 처리: ', leaveres);
       socket.leave(parsedRoomId.toString());
 
       //현재 참여자 목록 업데이트
