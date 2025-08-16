@@ -61,11 +61,17 @@ export class RecommendationService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
     const existing = await prisma.dailyRecommendation.findFirst({
       where: {
         recommenderId: userId,
         recommendedUserId: targetUserId,
-        recommendationDate: today,
+        createdAt: {
+          gte: today,
+          lt: tomorrow,
+        },
       },
     });
 
