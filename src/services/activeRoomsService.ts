@@ -52,7 +52,11 @@ export class ActiveRoomService {
 
     // 2. 데이터베이스에서 방 목록 조회
     const rooms = await prisma.room.findMany({
-      where,
+      where: {
+        currentParticipants: {
+          not: 0, // != 0 과 동일
+        },
+      },
       include: {
         host: true,
         _count: {
