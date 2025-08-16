@@ -54,7 +54,7 @@ export class ActiveRoomService {
     const rooms = await prisma.room.findMany({
       where: {
         currentParticipants: {
-          not: 0,   // != 0 과 동일
+          not: 0, // != 0 과 동일
         },
       },
       include: {
