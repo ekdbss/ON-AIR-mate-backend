@@ -11,6 +11,7 @@ export const SOCKET_USER_KEY = (socketId: string) => `socket:${socketId}:userId`
 export const USER_ROOMS_KEY = (userId: number) => `user:${userId}:rooms`;
 
 export const USER_STATUS_KEY = (userId: number) => `user:${userId}:status`;
+export const ONLINE_USERS_KEY = 'users:online';
 
 // 방 영상 상태
 export const ROOM_VIDEO_STATUS_KEY = (roomId: number) => `room:${roomId}:video:status`; // "playing" | "paused"
@@ -25,6 +26,7 @@ export const onlineUser = async (userId: number, socketId: string) => {
   await redis.set(USER_STATUS_KEY(userId), 'online');
   await redis.set(USER_SOCKET_KEY(userId), socketId);
   await redis.set(SOCKET_USER_KEY(socketId), userId.toString());
+  await redis.sadd(ONLINE_USERS_KEY, userId.toString());
 };
 
 export const offlineUser = async (userId: number, socketId: string) => {
@@ -32,6 +34,12 @@ export const offlineUser = async (userId: number, socketId: string) => {
   await redis.set(USER_STATUS_KEY(userId), 'offline');
   await redis.del(USER_SOCKET_KEY(userId));
   await redis.del(SOCKET_USER_KEY(socketId));
+  await redis.srem(ONLINE_USERS_KEY, userId.toString());
+};
+
+export const getOnlineUsers = async (): Promise<number[]> => {
+  const userIds = await redis.smembers(ONLINE_USERS_KEY);
+  return userIds.map(id => parseInt(id, 10));
 };
 
 /**
@@ -106,6 +114,16 @@ async function getUserRooms(userId: number) {
   const rooms = await redis.smembers(key); // SET에 저장된 모든 roomId 가져오기
   return rooms; // string[] 형태로 반환
 }
+
+export const getRoomParticipants = async (roomId: number): Promise<string[]> => {
+  try {
+    const participants = await redis.smembers(ROOM_PARTICIPANTS_KEY(roomId));
+    return participants;
+  } catch (err) {
+    console.error(`[Redis] getRoomParticipants Error:`, err);
+    return [];
+  }
+};
 
 export const isParticipant = async (roomId: number, userId: number): Promise<boolean> => {
   console.log('[Redis] isParticipant 이벤트 처리');
@@ -185,4 +203,25 @@ export const deleteRoomVideoState = async (roomId: number) => {
   const res = await redis.del(...keys);
   console.log(`[Redis] 방 영상 상태 삭제: roomId=${roomId}, 삭제된 키 수=${res}`);
   return res;
+};
+
+export const removeAllParticipantsFromRoom = async (roomId: number) => {
+  console.log(`[Redis] removeAllParticipantsFromRoom 실행: roomId=${roomId}`);
+
+  // 1. 참가자 전체 조회
+  const participants = await getRoomParticipants(roomId);
+
+  // 2. 참가자 카운트 키 삭제
+  await redis.del(ROOM_PARTICIPANTS_COUNT_KEY(roomId));
+
+  // 3. 참가자별 USER_ROOMS 세트에서도 제거
+  for (const userId of participants) {
+    await redis.srem(USER_ROOMS_KEY(Number(userId)), roomId.toString());
+  }
+  // 4. 방 참가자 세트 삭제
+  const deletedCount = await redis.del(ROOM_PARTICIPANTS_KEY(roomId));
+  return {
+    removedUsers: participants.map(Number),
+    deletedKeyCount: deletedCount,
+  };
 };

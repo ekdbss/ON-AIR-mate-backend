@@ -29,7 +29,7 @@ interface CollectionMessage extends BaseMessage {
 interface RoomMessage extends BaseMessage {
   room: {
     roomId: number;
-    roomName: string;
+    roomTitle: string;
     video: {
       title: string;
     };
@@ -210,11 +210,11 @@ export const saveDirectMessage = async (senderId: number, payload: SendDirectMes
 
   return {
     messageId: message.messageId,
-    senderId,
+    senderId: message.userId,
     receiverId,
     content: message.content,
     messageType: message.type,
-    createdAt: message.createdAt,
+    timestamp: message.createdAt.toISOString(),
   };
 };
 
@@ -269,23 +269,19 @@ export const getDirectMessages = async (userId: number, receiverId: number) => {
     } else if (msg.type === 'roomInvite' && msg.content) {
       try {
         const contentObj = JSON.parse(msg.content);
-        const roomId = contentObj.roomId;
-        const room = await prisma.room.findUnique({
-          where: { roomId },
-          select: {
-            roomId: true,
-            roomName: true,
-            video: {
-              select: {
-                title: true,
-              },
-            },
-          },
-        });
-        if (room) {
-          base.content = contentObj.message;
-          base = { ...base, room };
+        const { message, roomName, ...room1 } = contentObj;
+        base.content = message;
+        let room;
+        if (roomName) {
+          room = {
+            roomTitle: roomName,
+            ...room1,
+          };
+        } else {
+          room = room1;
         }
+
+        base = { ...base, room };
       } catch {
         // parsing error or no room found
         console.log('[messagType: roomInvite] parsing error or no room found');

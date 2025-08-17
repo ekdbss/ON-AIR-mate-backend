@@ -9,5 +9,5 @@ export interface YoutubeVideoDto {
   thumbnail: string;
   channelName: string;
   viewCount: number;
-  uploadedTime: string;
+  uploadTime: string;
 }
