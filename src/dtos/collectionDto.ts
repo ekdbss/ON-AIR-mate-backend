@@ -19,11 +19,16 @@ export interface CreateCollectionDto {
 
 export interface BookmarkInCollectionDto {
   bookmarkId: number;
-  videoTitle: string;
-  videoThumbnail: string;
-  roomTitle: string;
   message: string;
   createdAt: Date;
+}
+
+export interface RoomInCollectionDto {
+  roomId: number;
+  roomTitle: string;
+  videoTitle: string;
+  videoThumbnail: string;
+  bookmarks: BookmarkInCollectionDto[];
 }
 
 export interface GetCollectionDetailDto {
@@ -35,7 +40,7 @@ export interface GetCollectionDetailDto {
   coverImage: string | null;
   createdAt: Date;
   updatedAt: Date;
-  bookmarks: BookmarkInCollectionDto[];
+  rooms: RoomInCollectionDto[];
 }
 
 export interface UpdateCollectionDto {
