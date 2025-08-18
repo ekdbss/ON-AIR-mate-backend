@@ -12,6 +12,7 @@ import {
   GenerateSummaryResponseDto,
   ClaudeResponseDto,
   AISummaryFeedbackData,
+  EmotionItem,
 } from '../dtos/aiSummaryDto.js';
 
 const BEDROCK_MODEL_ID = 'anthropic.claude-3-5-sonnet-20240620-v1:0';
@@ -172,103 +173,59 @@ export class AiSummaryService {
       const response: InvokeModelCommandOutput = await bedrockClient.send(command);
       const responseBody = JSON.parse(new TextDecoder().decode(response.body)) as ClaudeResponse;
       const responseText = responseBody.content[0]?.text || '';
-
-      console.log('[AI Summary] 원본 응답:', responseText); // 디버깅용 로그
+      console.log('[AI Summary] 원본 응답:', responseText);
 
       let topicSummary = '';
-      let emotionAnalysis = '';
+      let emotionAnalysis: EmotionItem[] = [];
 
-      // 줄바꿈 기준 파싱 시도
+      // 줄바꿈 기준 파싱
       const lines = responseText
         .trim()
         .split('\n')
         .filter(line => line.trim());
 
       if (lines.length >= 2) {
-        // 정상적으로 2줄 이상 응답이 온 경우
         topicSummary = lines[0].trim();
-        emotionAnalysis = lines[1].trim();
-      } else if (lines.length === 1) {
-        // 한 줄로 응답이 온 경우 - 패턴으로 분리 시도
-        const singleLine = lines[0];
+        const emotionText = lines[1].trim();
 
-        // 감정 분석 패턴 찾기 (예: "기쁨 30%", "슬픔 20%" 등)
+        // 감정 텍스트를 배열로 파싱
+        emotionAnalysis = this.parseEmotionText(emotionText);
+      } else if (lines.length === 1) {
+        // 한 줄로 응답이 온 경우 처리
+        const singleLine = lines[0];
         const emotionPattern = /[가-힣]+\s*\d+%/;
         const emotionMatch = singleLine.match(emotionPattern);
 
         if (emotionMatch) {
-          // 감정 분석 부분의 시작 위치 찾기
           const emotionStartIndex = singleLine.indexOf(emotionMatch[0]);
-
           if (emotionStartIndex > 0) {
             topicSummary = singleLine.substring(0, emotionStartIndex).trim();
-            emotionAnalysis = singleLine.substring(emotionStartIndex).trim();
-          } else {
-            // 감정 분석이 처음부터 시작하는 경우
-            topicSummary = '채팅 내용에 대한 요약을 생성할 수 없습니다.';
-            emotionAnalysis = singleLine;
+            const emotionText = singleLine.substring(emotionStartIndex).trim();
+            emotionAnalysis = this.parseEmotionText(emotionText);
           }
-        } else {
-          // 감정 패턴을 찾을 수 없는 경우
-          topicSummary = singleLine;
-          emotionAnalysis = '감정 분석 없음';
         }
       }
 
-      // 키워드 기반 파싱 (fallback)
-      if (!topicSummary || !emotionAnalysis || emotionAnalysis === '감정 분석 없음') {
-        // 전체 텍스트에서 감정 키워드와 퍼센트를 찾기
-        const emotionKeywords = [
-          '기쁨',
-          '슬픔',
-          '분노',
-          '놀람',
-          '감동',
-          '공감',
-          '공포',
-          '좌절',
-          '절망',
-          '당황',
-        ];
-        const percentPattern = new RegExp(`(${emotionKeywords.join('|')})\\s*\\d+%`, 'g');
-        const matches = responseText.match(percentPattern);
-
-        if (matches && matches.length > 0) {
-          emotionAnalysis = matches.join(', ');
-
-          // 감정 분석 부분을 제외한 나머지를 주제 요약으로
-          let tempText = responseText;
-          matches.forEach(match => {
-            tempText = tempText.replace(match, '');
-          });
-          topicSummary = tempText.trim() || '영상을 시청하며 다양한 의견을 나누었습니다.';
-        }
-      }
-
-      // 최종 검증 및 기본값 설정
+      // 검증 및 기본값 설정
       if (!topicSummary || topicSummary.length < 5) {
         topicSummary = '영상을 보며 즐거운 시간을 보냈네요!';
         console.warn('[AI Summary] 주제 요약 생성 실패, 기본값 사용');
       }
 
-      if (
-        !emotionAnalysis ||
-        emotionAnalysis === '감정 분석 없음' ||
-        !emotionAnalysis.includes('%')
-      ) {
-        emotionAnalysis = '공감 40%, 기쁨 30%, 놀람 20%, 기타 10%';
+      if (emotionAnalysis.length === 0) {
+        // 기본값 설정
+        emotionAnalysis = [
+          { emotion: '공감', percentage: 40 },
+          { emotion: '기쁨', percentage: 30 },
+          { emotion: '놀람', percentage: 20 },
+          { emotion: '기타', percentage: 10 },
+        ];
         console.warn('[AI Summary] 감정 분석 생성 실패, 기본값 사용');
       }
 
-      // 최종 결과 검증
-      console.log('[AI Summary] 파싱 결과:', {
-        topicSummary,
-        emotionAnalysis,
-      });
-
       return {
-        topicSummary: topicSummary.substring(0, 200), // 최대 200자 제한
-        emotionAnalysis: emotionAnalysis.substring(0, 200), // 최대 200자 제한
+        topicSummary: topicSummary.substring(0, 200),
+        emotionAnalysis,
       };
     } catch (error) {
       console.error('[AI Summary] Claude 모델 호출 실패:', error);
@@ -276,9 +233,56 @@ export class AiSummaryService {
       // AI 호출 실패 시 기본 응답 반환
       return {
         topicSummary: '채팅 내용을 분석 중 오류가 발생했습니다.',
-        emotionAnalysis: '감정 분석을 수행할 수 없습니다.',
+        emotionAnalysis: [{ emotion: '분석 불가', percentage: 100 }],
       };
     }
+  }
+
+  /**
+   * 감정 텍스트를 구조화된 배열로 파싱
+   * "기쁨 30%, 슬픔 20%, 분노 10%" -> [{emotion: "기쁨", percentage: 30}, ...]
+   */
+  private parseEmotionText(emotionText: string): EmotionItem[] {
+    const emotionItems: EmotionItem[] = [];
+
+    // 감정 키워드 정의
+    const emotionKeywords = [
+      '기쁨',
+      '슬픔',
+      '분노',
+      '놀람',
+      '감동',
+      '공감',
+      '공포',
+      '좌절',
+      '절망',
+      '당황',
+      '기타',
+    ];
+
+    // 정규식으로 "감정명 숫자%" 패턴 찾기
+    const pattern = new RegExp(`(${emotionKeywords.join('|')})\\s*(\\d+)%`, 'g');
+    let match;
+
+    while ((match = pattern.exec(emotionText)) !== null) {
+      emotionItems.push({
+        emotion: match[1],
+        percentage: parseInt(match[2], 10),
+      });
+    }
+
+    // 백분율 합계 검증 및 보정
+    const total = emotionItems.reduce((sum, item) => sum + item.percentage, 0);
+    if (total !== 100 && emotionItems.length > 0) {
+      // 마지막 항목으로 보정
+      const diff = 100 - total;
+      emotionItems[emotionItems.length - 1].percentage += diff;
+    }
+
+    // 내림차순 정렬
+    emotionItems.sort((a, b) => b.percentage - a.percentage);
+
+    return emotionItems;
   }
 
   /**

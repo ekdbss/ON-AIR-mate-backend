@@ -52,9 +52,17 @@ const router = express.Router();
  *                       type: string
  *                       example: 전체 대화 주제 요약
  *                     emotionAnalysis:
- *                       type: string
- *                       description: 6가지 기본 감정 중 하나와 설명 (기쁨/슬픔/분노/혐오/공포/놀람)
- *                       example: 기쁨 - 영상을 보며 즐거워하는 반응이 많았습니다
+ *                       type: array
+ *                       description: 감정별 분석 결과
+ *                       example:
+ *                         - emotion: "기쁨"
+ *                           percentage: 40
+ *                         - emotion: "공감"
+ *                           percentage: 30
+ *                         - emotion: "놀람"
+ *                           percentage: 20
+ *                         - emotion: "슬픔"
+ *                           percentage: 10
  *                     timestamp:
  *                       type: string
  *                       format: date-time
