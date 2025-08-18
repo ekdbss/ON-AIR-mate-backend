@@ -67,6 +67,9 @@ export const getCollectionDetailById = async (
             },
           },
         },
+        orderBy: {
+          createdAt: 'asc',
+        },
       },
     },
   });
@@ -97,6 +100,41 @@ export const getCollectionDetailById = async (
     }
   }
 
+  const roomsMap = collection.bookmarks.reduce(
+    (acc, bookmark) => {
+      const { room } = bookmark;
+      if (!acc[room.roomId]) {
+        acc[room.roomId] = {
+          roomId: room.roomId,
+          roomTitle: room.roomName,
+          videoTitle: room.video.title,
+          videoThumbnail: room.video.thumbnail || '',
+          bookmarks: [],
+        };
+      }
+      acc[room.roomId].bookmarks.push({
+        bookmarkId: bookmark.bookmarkId,
+        message: `${String(Math.floor(bookmark.timeline! / 60)).padStart(2, '0')}:${String(
+          bookmark.timeline! % 60,
+        ).padStart(2, '0')} ${bookmark.content}`,
+        createdAt: bookmark.createdAt,
+      });
+      return acc;
+    },
+    {} as Record<
+      number,
+      {
+        roomId: number;
+        roomTitle: string;
+        videoTitle: string;
+        videoThumbnail: string;
+        bookmarks: { bookmarkId: number; message: string; createdAt: Date }[];
+      }
+    >,
+  );
+
+  const rooms = Object.values(roomsMap);
+
   return {
     collectionId: collection.collectionId,
     title: collection.title,
@@ -106,14 +144,7 @@ export const getCollectionDetailById = async (
     coverImage: collection.coverImage,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
-    bookmarks: collection.bookmarks.map(bookmark => ({
-      bookmarkId: bookmark.bookmarkId,
-      videoTitle: bookmark.room.video.title,
-      videoThumbnail: bookmark.room.video.thumbnail || '',
-      roomTitle: bookmark.room.roomName,
-      message: `${String(Math.floor(bookmark.timeline! / 60)).padStart(2, '0')}:${String(bookmark.timeline! % 60).padStart(2, '0')} ${bookmark.content}`,
-      createdAt: bookmark.createdAt,
-    })),
+    rooms,
   };
 };
 
