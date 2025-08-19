@@ -264,6 +264,15 @@ export const createRoomFromBookmark = async (
     },
   });
 
+  //참가자 목록 추가
+  await prisma.roomParticipant.create({
+    data: {
+      roomId: newRoom.roomId,
+      userId: userId,
+      role: 'host',
+    },
+  });
+
   return {
     roomId: newRoom.roomId,
     thumbnail: videoThumbnail,
