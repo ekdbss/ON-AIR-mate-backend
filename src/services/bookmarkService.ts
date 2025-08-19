@@ -211,16 +211,16 @@ export const moveBookmarkToCollection = async (
     data: { collectionId },
   });
 
-  const res2 =await prisma.collection.update({
+  const res2 = await prisma.collection.update({
     where: { collectionId },
-    data:{
+    data: {
       bookmarkCount: {
-      increment: 1, // 기존 값에서 +1
-    },}
+        increment: 1, // 기존 값에서 +1
+      },
+    },
   });
 
-  console.log('북마크 컬렉션으로 이동: ',res1.collectionId,", ",res2.bookmarkCount);
-
+  console.log('북마크 컬렉션으로 이동: ', res1.collectionId, ', ', res2.bookmarkCount);
 };
 
 // 5. 북마크로 방 생성 서비스
