@@ -63,7 +63,7 @@ export const getCollectionDetailById = async (
         include: {
           room: {
             include: {
-              video: true,
+              youtube_videos: true,
             },
           },
         },
@@ -107,8 +107,8 @@ export const getCollectionDetailById = async (
         acc[room.roomId] = {
           roomId: room.roomId,
           roomTitle: room.roomName,
-          videoTitle: room.video.title,
-          videoThumbnail: room.video.thumbnail || '',
+          videoTitle: room.youtube_videos.title,
+          videoThumbnail: room.youtube_videos.thumbnail || '',
           bookmarks: [],
         };
       }

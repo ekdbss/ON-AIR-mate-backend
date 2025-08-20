@@ -43,7 +43,7 @@ type BookmarkWithRelations = Prisma.BookmarkGetPayload<{
   include: {
     room: {
       include: {
-        video: true; // Room.video (YoutubeVideo)
+        youtube_videos: true; // Room.video (YoutubeVideo)
       };
     };
     collection: {
@@ -71,7 +71,7 @@ export const getBookmarks = async (userId: number, options: GetBookmarksOptions)
   const rows: BookmarkWithRelations[] = await prisma.bookmark.findMany({
     where: baseWhere,
     include: {
-      room: { include: { video: true } },
+      room: { include: { youtube_videos: true } },
       collection: { select: { title: true } },
     },
     orderBy: { createdAt: 'desc' },
@@ -108,8 +108,8 @@ export const getBookmarks = async (userId: number, options: GetBookmarksOptions)
     for (const b of list) {
       const roomId = b.roomId;
       const roomName = b.room?.roomName ?? null;
-      const videoTitle = b.room?.video?.title ?? null;
-      const videoThumbnail = b.room?.video?.thumbnail ?? null;
+      const videoTitle = b.room?.youtube_videos?.title ?? null;
+      const videoThumbnail = b.room?.youtube_videos?.thumbnail ?? null;
       const bookmarkCollectionTitle = b.collection?.title ?? null;
 
       let idx = map.get(roomId);
@@ -246,7 +246,7 @@ export const createRoomFromBookmark = async (
     include: {
       room: {
         include: {
-          video: true,
+          youtube_videos: true,
         },
       },
     },
@@ -256,7 +256,7 @@ export const createRoomFromBookmark = async (
     throw new Error('해당 북마크에 대한 권한이 없습니다.');
   }
 
-  const videoThumbnail = bookmark.room?.video?.thumbnail ?? '';
+  const videoThumbnail = bookmark.room?.youtube_videos?.thumbnail ?? '';
   const startTime = startFrom === 'BOOKMARK' ? (bookmark?.timeline ?? 0) : 0;
 
   if (!bookmark.room?.videoId) {
