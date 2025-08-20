@@ -13,6 +13,7 @@ import {
   ClaudeResponseDto,
   AISummaryFeedbackData,
   EmotionItem,
+  HighlightItem,
 } from '../dtos/aiSummaryDto.js';
 
 const BEDROCK_MODEL_ID = 'anthropic.claude-3-5-sonnet-20240620-v1:0';
@@ -105,10 +106,47 @@ export class AiSummaryService {
       .join('\n')
       .slice(0, MAX_CONTENT_LENGTH);
 
-    // 6. Claude 3.5 Sonnet 모델 호출
+    // 6. 북마크 조회 추가
+    const bookmarks = await prisma.bookmark.findMany({
+      where: { roomId: data.roomId },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            nickname: true,
+          },
+        },
+      },
+      orderBy: { timeline: 'asc' }, // 시간순 정렬
+    });
+
+    // 북마크를 하이라이트 형시ㄱ
+    const highlights: HighlightItem[] = bookmarks.map(bookmark => {
+      const totalSeconds = bookmark.timeline || 0;
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      // HH:MM:SS 또는 MM:SS 형식으로 변환
+      let timeline = '';
+      if (hours > 0) {
+        timeline = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      } else {
+        timeline = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      }
+
+      return {
+        timeline,
+        content: bookmark.content || '',
+        userId: bookmark.user.userId,
+        nickname: bookmark.user.nickname,
+      };
+    });
+
+    // 7. Claude 3.5 Sonnet 모델 호출 (기존 코드와 동일)
     const summary = await this.callClaudeModel(chatContent, video.title);
 
-    // 7. 임시 summaryId 생성
+    // 8. 임시 summaryId 생성
     const summaryId = `summary_${data.roomId}_${randomUUID()}`;
 
     return {
@@ -117,6 +155,7 @@ export class AiSummaryService {
       videoTitle: video.title,
       topicSummary: summary.topicSummary,
       emotionAnalysis: summary.emotionAnalysis,
+      highlights, // 북마크 리스트
       timestamp: new Date().toISOString(),
     };
   }

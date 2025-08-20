@@ -50,10 +50,19 @@ const router = express.Router();
  *                       example: 영상제목
  *                     topicSummary:
  *                       type: string
- *                       example: 전체 대화 주제 요약
+ *                       example: 영상을 보며 즐거운 시간을 보냈네요!
  *                     emotionAnalysis:
  *                       type: array
  *                       description: 감정별 분석 결과
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           emotion:
+ *                             type: string
+ *                             example: 기쁨
+ *                           percentage:
+ *                             type: number
+ *                             example: 40
  *                       example:
  *                         - emotion: "기쁨"
  *                           percentage: 40
@@ -63,6 +72,37 @@ const router = express.Router();
  *                           percentage: 20
  *                         - emotion: "슬픔"
  *                           percentage: 10
+ *                     highlights:
+ *                       type: array
+ *                       description: 북마크 하이라이트 리스트
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           timeline:
+ *                             type: string
+ *                             example: "13:28"
+ *                           content:
+ *                             type: string
+ *                             example: "재밌는 장면"
+ *                           userId:
+ *                             type: number
+ *                             example: 123
+ *                           nickname:
+ *                             type: string
+ *                             example: "사용자닉네임"
+ *                       example:
+ *                         - timeline: "13:28"
+ *                           content: "재밌는 장면"
+ *                           userId: 123
+ *                           nickname: "홍길동"
+ *                         - timeline: "27:18"
+ *                           content: "감동적인 부분"
+ *                           userId: 456
+ *                           nickname: "김철수"
+ *                         - timeline: "1:02:35"
+ *                           content: "결정적 순간"
+ *                           userId: 789
+ *                           nickname: "이영희"
  *                     timestamp:
  *                       type: string
  *                       format: date-time

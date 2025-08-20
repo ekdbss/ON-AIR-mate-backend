@@ -14,6 +14,16 @@ export interface EmotionItem {
 }
 
 /**
+ * 하이라이트(북마크) 항목
+ */
+export interface HighlightItem {
+  timeline: string; // "13:28" 형식
+  content: string; // 북마크 메시지
+  userId: number;
+  nickname: string;
+}
+
+/**
  * AI 채팅 요약 응답 DTO
  */
 export interface GenerateSummaryResponseDto {
@@ -21,7 +31,8 @@ export interface GenerateSummaryResponseDto {
   roomTitle: string;
   videoTitle: string;
   topicSummary: string;
-  emotionAnalysis: EmotionItem[]; // string에서 배열로 변경
+  emotionAnalysis: EmotionItem[];
+  highlights: HighlightItem[];
   timestamp: string;
 }
 
