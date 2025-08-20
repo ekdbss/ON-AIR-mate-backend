@@ -132,6 +132,7 @@ export const getCollectionDetailById = async (
       }
     >,
   );
+  console.log('컬렉션 내부 상세 조회: ', roomsMap);
 
   const rooms = Object.values(roomsMap);
 
