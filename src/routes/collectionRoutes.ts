@@ -106,6 +106,51 @@ router.get('/:collectionId', requireAuth, collectionController.getCollectionDeta
 
 /**
  * @swagger
+ * /api/collections/order:
+ *   put:
+ *     summary: 컬렉션 순서 변경
+ *     tags: [Collections]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ReorderCollectionsDto'
+ *           example:
+ *             collectionOrders:
+ *               - collectionId: 123
+ *                 order: 1
+ *               - collectionId: 124
+ *                 order: 2
+ *     responses:
+ *       200:
+ *         description: 컬렉션 순서 변경 성공
+ *
+ * components:
+ *   schemas:
+ *     ReorderCollectionsDto:
+ *       type: object
+ *       properties:
+ *         collectionOrders:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               collectionId:
+ *                 type: integer
+ *                 example: 123
+ *               order:
+ *                 type: integer
+ *                 example: 1
+ *       required:
+ *         - collectionOrders
+ */
+router.put('/order', requireAuth, collectionController.updateCollectionOrder);
+
+/**
+ * @swagger
  * /api/collections/{collectionId}:
  *   put:
  *     summary: 컬렉션 수정
@@ -153,32 +198,6 @@ router.put('/:collectionId', requireAuth, collectionController.updateCollection)
  *         description: 컬렉션 삭제 성공
  */
 router.delete('/:collectionId', requireAuth, collectionController.deleteCollection);
-
-/**
- * @swagger
- * /api/collections/order:
- *   put:
- *     summary: 컬렉션 순서 변경
- *     tags: [Collections]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ReorderCollectionsDto'
- *           example:
- *             collectionOrders:
- *               - collectionId: 123
- *                 order: 1
- *               - collectionId: 124
- *                 order: 2
- *     responses:
- *       200:
- *         description: 컬렉션 순서 변경 성공
- */
-router.put('/order', requireAuth, collectionController.updateCollectionOrder);
 
 /**
  * 컬렉션 공유하기

@@ -122,7 +122,7 @@ model Room {
   messages            RoomMessage[]
   participants        RoomParticipant[]
   host                User              @relation("HostUser", fields: [hostId], references: [userId], onDelete: Cascade)
-  video               YoutubeVideo      @relation("VideoOnRoom", fields: [videoId], references: [videoId])
+  youtube_videos      YoutubeVideo      @relation(fields: [videoId], references: [videoId])
 
   @@index([hostId], map: "rooms_host_id_fkey")
   @@index([videoId], map: "rooms_video_id_fkey")
@@ -306,7 +306,7 @@ model YoutubeVideo {
   duration    String?   @db.VarChar(20)
   uploadedAt  DateTime? @map("uploaded_at")
   createdAt   DateTime  @default(now()) @map("created_at")
-  rooms       Room[]    @relation("VideoOnRoom")
+  rooms       Room[]
 
   @@map("youtube_videos")
 }
