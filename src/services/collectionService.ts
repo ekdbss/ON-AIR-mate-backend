@@ -149,7 +149,7 @@ export const getCollectionDetailById = async (
         bookmarks: {
           bookmarkId: number;
           message: string;
-          timeLine: number;
+          timeline: number;
         }[];
       }
     >,
