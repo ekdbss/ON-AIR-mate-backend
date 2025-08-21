@@ -1,10 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { CollectionVisibility } from '@prisma/client';
-import {
-  CreateCollectionDto,
-  GetCollectionDto,
-  GetCollectionDetailDto,
-} from '../dtos/collectionDto.js';
+import { CreateCollectionDto, GetCollectionDto } from '../dtos/collectionDto.js';
 import AppError from '../middleware/errors/AppError.js';
 
 // 1. 컬랙션 생성
@@ -55,7 +51,22 @@ export const getCollectionsByUserId = async (userId: number): Promise<GetCollect
 export const getCollectionDetailById = async (
   collectionId: number,
   userId: number,
-): Promise<GetCollectionDetailDto> => {
+): Promise<
+  {
+    roomData: {
+      roomId: number;
+      roomName: string;
+      videoTitle: string;
+      videoThumbnail: string;
+      collectionTitle: string | null;
+    };
+    bookmarks: {
+      bookmarkId: number;
+      message: string;
+      timeline: number;
+    }[];
+  }[]
+> => {
   const collection = await prisma.collection.findUnique({
     where: { collectionId },
     include: {
@@ -105,48 +116,46 @@ export const getCollectionDetailById = async (
       const { room } = bookmark;
       if (!acc[room.roomId]) {
         acc[room.roomId] = {
-          roomId: room.roomId,
-          roomTitle: room.roomName,
-          videoTitle: room.youtube_videos.title,
-          videoThumbnail: room.youtube_videos.thumbnail || '',
+          roomData: {
+            roomId: room.roomId,
+            roomName: room.roomName,
+            videoTitle: room.youtube_videos.title,
+            videoThumbnail: room.youtube_videos.thumbnail || '',
+            collectionTitle: collection.title || null,
+          },
           bookmarks: [],
         };
       }
       acc[room.roomId].bookmarks.push({
         bookmarkId: bookmark.bookmarkId,
-        message: `${String(Math.floor(bookmark.timeline! / 60)).padStart(2, '0')}:${String(
-          bookmark.timeline! % 60,
-        ).padStart(2, '0')} ${bookmark.content}`,
-        createdAt: bookmark.createdAt,
+        message: `${String(Math.floor(bookmark.timeline! / 60)).padStart(
+          2,
+          '0',
+        )}:${String(bookmark.timeline! % 60).padStart(2, '0')} ${bookmark.content}`,
+        timeline: bookmark.timeline!,
       });
       return acc;
     },
     {} as Record<
       number,
       {
-        roomId: number;
-        roomTitle: string;
-        videoTitle: string;
-        videoThumbnail: string;
-        bookmarks: { bookmarkId: number; message: string; createdAt: Date }[];
+        roomData: {
+          roomId: number;
+          roomName: string;
+          videoTitle: string;
+          videoThumbnail: string;
+          collectionTitle: string | null;
+        };
+        bookmarks: {
+          bookmarkId: number;
+          message: string;
+          timeline: number;
+        }[];
       }
     >,
   );
-  console.log('컬렉션 내부 상세 조회: ', roomsMap);
 
-  const rooms = Object.values(roomsMap);
-
-  return {
-    collectionId: collection.collectionId,
-    title: collection.title,
-    description: collection.description,
-    bookmarkCount: collection.bookmarkCount,
-    visibility: collection.visibility,
-    coverImage: collection.coverImage,
-    createdAt: collection.createdAt,
-    updatedAt: collection.updatedAt,
-    rooms,
-  };
+  return Object.values(roomsMap);
 };
 
 // 4. 컬렉션 수정
