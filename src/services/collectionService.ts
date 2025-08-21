@@ -49,7 +49,7 @@ export const getCollectionsByUserId = async (userId: number): Promise<GetCollect
 
 // 3. 컬랙션 상세 조회
 export const getCollectionDetailById = async (collectionId: number, userId: number) => {
-  const collection = await prisma.collection.findUnique({
+  let collection = await prisma.collection.findUnique({
     where: { collectionId },
     include: {
       bookmarks: {
@@ -88,11 +88,17 @@ export const getCollectionDetailById = async (collectionId: number, userId: numb
       },
     });
 
-    if (firstBookmark?.room?.youtube_videos?.thumbnail) {
+    const thumbnail = firstBookmark?.room?.youtube_videos?.thumbnail;
+
+    if (thumbnail) {
       collection = await prisma.collection.update({
         where: { collectionId: collection.collectionId },
-        data: {
-          coverImage: firstBookmark.room.youtube_videos.thumbnail,
+        data: { coverImage: thumbnail },
+        include: {
+          bookmarks: {
+            include: { room: { include: { youtube_videos: true } } },
+            orderBy: { createdAt: 'asc' },
+          },
         },
       });
     }
