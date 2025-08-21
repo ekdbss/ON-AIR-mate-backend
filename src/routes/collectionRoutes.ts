@@ -96,43 +96,44 @@ router.get('/', requireAuth, collectionController.getCollections);
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
  *                       roomId:
  *                         type: integer
- *                         example: 333
+ *                         example: 12
  *                       roomName:
  *                         type: string
- *                         example: 방이름1
+ *                         example: 안녕하세요
  *                       videoTitle:
  *                         type: string
- *                         example: 영상제목
+ *                         example: 아따맘마 오프닝 '잘 있어요' - 리메이크 [4K]
  *                       videoThumbnail:
  *                         type: string
- *                         example: 썸네일URL
- *                   bookmarks:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         bookmarkId:
- *                           type: integer
- *                           example: 456
- *                         message:
- *                           type: string
- *                           example: 00:15:30 재밌는 장면
- *                         createdAt:
- *                           type: integer
- *                           example: 930
+ *                         example: https://i.ytimg.com/vi/mS9g-WyKC7U/mqdefault.jpg
+ *                       bookmarks:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             bookmarkId:
+ *                               type: integer
+ *                               example: 19
+ *                             message:
+ *                               type: string
+ *                               example: 03:45 꿀잼!
+ *                             createdAt:
+ *                               type: integer
+ *                               example: 225
  *       401:
  *         description: 인증되지 않은 사용자 또는 권한 없음
  *       404:
  *         description: 컬렉션을 찾을 수 없음
  */
-router.get('/:collectionId', requireAuth, collectionController.getCollectionDetail);
-
 router.get('/:collectionId', requireAuth, collectionController.getCollectionDetail);
 
 /**
