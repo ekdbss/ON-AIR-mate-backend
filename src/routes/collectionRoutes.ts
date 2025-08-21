@@ -115,10 +115,6 @@ router.get('/', requireAuth, collectionController.getCollections);
  *                       videoThumbnail:
  *                         type: string
  *                         example: 썸네일URL
- *                       collectionTitle:
- *                         type: string
- *                         nullable: true
- *                         example: null
  *                   bookmarks:
  *                     type: array
  *                     items:
@@ -130,7 +126,7 @@ router.get('/', requireAuth, collectionController.getCollections);
  *                         message:
  *                           type: string
  *                           example: 00:15:30 재밌는 장면
- *                         timeline:
+ *                         createdAt:
  *                           type: integer
  *                           example: 930
  *       401:

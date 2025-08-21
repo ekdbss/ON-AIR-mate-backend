@@ -58,12 +58,11 @@ export const getCollectionDetailById = async (
       roomName: string;
       videoTitle: string;
       videoThumbnail: string;
-      collectionTitle: string | null;
     };
     bookmarks: {
       bookmarkId: number;
       message: string;
-      timeline: number;
+      createdAt: number;
     }[];
   }[]
 > => {
@@ -121,7 +120,6 @@ export const getCollectionDetailById = async (
             roomName: room.roomName,
             videoTitle: room.youtube_videos.title,
             videoThumbnail: room.youtube_videos.thumbnail || '',
-            collectionTitle: collection.title || null,
           },
           bookmarks: [],
         };
@@ -132,7 +130,7 @@ export const getCollectionDetailById = async (
           2,
           '0',
         )}:${String(bookmark.timeline! % 60).padStart(2, '0')} ${bookmark.content}`,
-        timeline: bookmark.timeline!,
+        createdAt: bookmark.timeline!,
       });
       return acc;
     },
@@ -144,12 +142,11 @@ export const getCollectionDetailById = async (
           roomName: string;
           videoTitle: string;
           videoThumbnail: string;
-          collectionTitle: string | null;
         };
         bookmarks: {
           bookmarkId: number;
           message: string;
-          timeline: number;
+          createdAt: number;
         }[];
       }
     >,
