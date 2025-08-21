@@ -48,25 +48,7 @@ export const getCollectionsByUserId = async (userId: number): Promise<GetCollect
 };
 
 // 3. 컬랙션 상세 조회
-export const getCollectionDetailById = async (
-  collectionId: number,
-  userId: number,
-): Promise<
-  {
-    roomData: {
-      roomId: number;
-      roomName: string;
-      videoTitle: string;
-      videoThumbnail: string;
-      collectionTitle: string | null;
-    };
-    bookmarks: {
-      bookmarkId: number;
-      message: string;
-      timeline: number;
-    }[];
-  }[]
-> => {
+export const getCollectionDetailById = async (collectionId: number, userId: number) => {
   const collection = await prisma.collection.findUnique({
     where: { collectionId },
     include: {
@@ -155,7 +137,7 @@ export const getCollectionDetailById = async (
     >,
   );
 
-  return Object.values(roomsMap);
+  return Object.values(roomsMap)[0];
 };
 
 // 4. 컬렉션 수정

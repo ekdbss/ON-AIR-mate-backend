@@ -96,39 +96,41 @@ router.get('/', requireAuth, collectionController.getCollections);
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: array
- *                   items:
+ *                 type: object
+ *                 properties:
+ *                   roomData:
  *                     type: object
  *                     properties:
  *                       roomId:
  *                         type: integer
- *                         example: 12
+ *                         example: 333
  *                       roomName:
  *                         type: string
- *                         example: 안녕하세요
+ *                         example: 방이름1
  *                       videoTitle:
  *                         type: string
- *                         example: 아따맘마 오프닝 '잘 있어요' - 리메이크 [4K]
+ *                         example: 영상제목
  *                       videoThumbnail:
  *                         type: string
- *                         example: https://i.ytimg.com/vi/mS9g-WyKC7U/mqdefault.jpg
- *                       bookmarks:
- *                         type: array
- *                         items:
- *                           type: object
- *                           properties:
- *                             bookmarkId:
- *                               type: integer
- *                               example: 19
- *                             message:
- *                               type: string
- *                               example: 03:45 꿀잼!
- *                             createdAt:
- *                               type: integer
- *                               example: 225
+ *                         example: 썸네일URL
+ *                       collectionTitle:
+ *                         type: string
+ *                         nullable: true
+ *                         example: null
+ *                   bookmarks:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         bookmarkId:
+ *                           type: integer
+ *                           example: 456
+ *                         message:
+ *                           type: string
+ *                           example: 00:15:30 재밌는 장면
+ *                         timeline:
+ *                           type: integer
+ *                           example: 930
  *       401:
  *         description: 인증되지 않은 사용자 또는 권한 없음
  *       404:
