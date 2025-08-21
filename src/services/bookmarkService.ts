@@ -211,16 +211,34 @@ export const moveBookmarkToCollection = async (
     data: { collectionId },
   });
 
-  const res2 = await prisma.collection.update({
-    where: { collectionId },
-    data: {
-      bookmarkCount: {
-        increment: 1, // 기존 값에서 +1
+  // 1. 해당 Room 조회 (YoutubeVideo 포함)
+  const room = await prisma.room.findUnique({
+    where: { roomId: res1.roomId },
+    include: {
+      youtube_videos: {
+        select: { thumbnail: true },
       },
     },
   });
 
-  console.log('북마크 컬렉션으로 이동: ', res1.collectionId, ', ', res2.bookmarkCount);
+  // 2. 현재 Collection 조회
+  const collection = await prisma.collection.findUnique({
+    where: { collectionId },
+    select: { bookmarkCount: true, coverImage: true },
+  });
+
+  // 3. coverImage 업데이트 여부 결정
+  const shouldUpdateCover =
+    collection?.bookmarkCount === 0 && !collection.coverImage && room?.youtube_videos?.thumbnail;
+
+  // 4. Collection 업데이트- bookmarkCount가 0에서 1로 되는 순간에만 썸네일 지정
+  await prisma.collection.update({
+    where: { collectionId },
+    data: {
+      bookmarkCount: { increment: 1 },
+      ...(shouldUpdateCover ? { coverImage: room.youtube_videos.thumbnail } : {}),
+    },
+  });
 };
 
 // 5. 북마크로 방 생성 서비스

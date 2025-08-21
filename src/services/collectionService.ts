@@ -71,6 +71,33 @@ export const getCollectionDetailById = async (collectionId: number, userId: numb
     throw new AppError('COLLECTION_001', '컬렉션을 찾을 수 없습니다.');
   }
 
+  //북마크가 있는데도 커버이미지가 없는 경우 자동 추가
+  if (collection.bookmarkCount > 0 && !collection.coverImage) {
+    // 첫 번째 북마크 찾기 (가장 오래된 북마크 1개만)
+    const firstBookmark = await prisma.bookmark.findFirst({
+      where: { collectionId: collection.collectionId },
+      orderBy: { createdAt: 'asc' },
+      include: {
+        room: {
+          include: {
+            youtube_videos: {
+              select: { thumbnail: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (firstBookmark?.room?.youtube_videos?.thumbnail) {
+      collection = await prisma.collection.update({
+        where: { collectionId: collection.collectionId },
+        data: {
+          coverImage: firstBookmark.room.youtube_videos.thumbnail,
+        },
+      });
+    }
+  }
+
   // 접근 권한 확인
   if (collection.userId !== userId) {
     if (collection.visibility === 'private') {
@@ -137,7 +164,17 @@ export const getCollectionDetailById = async (collectionId: number, userId: numb
     >,
   );
 
-  return Object.values(roomsMap)[0];
+  return {
+    collectionId: collection.collectionId,
+    title: collection.title,
+    description: collection.description,
+    bookmarkCount: collection.bookmarkCount,
+    visibility: collection.visibility,
+    coverImage: collection.coverImage,
+    createdAt: collection.createdAt,
+    updatedAt: collection.updatedAt,
+    rooms: Object.values(roomsMap),
+  };
 };
 
 // 4. 컬렉션 수정
