@@ -100,9 +100,6 @@ router.get('/', requireAuth, collectionController.getCollections);
  *               items:
  *                 type: object
  *                 properties:
- *                   roomData:
- *                     type: object
- *                     properties:
  *                       roomId:
  *                         type: integer
  *                         example: 333

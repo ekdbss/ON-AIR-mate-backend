@@ -53,12 +53,10 @@ export const getCollectionDetailById = async (
   userId: number,
 ): Promise<
   {
-    roomData: {
-      roomId: number;
-      roomName: string;
-      videoTitle: string;
-      videoThumbnail: string;
-    };
+    roomId: number;
+    roomName: string;
+    videoTitle: string;
+    videoThumbnail: string;
     bookmarks: {
       bookmarkId: number;
       message: string;
@@ -115,12 +113,10 @@ export const getCollectionDetailById = async (
       const { room } = bookmark;
       if (!acc[room.roomId]) {
         acc[room.roomId] = {
-          roomData: {
-            roomId: room.roomId,
-            roomName: room.roomName,
-            videoTitle: room.youtube_videos.title,
-            videoThumbnail: room.youtube_videos.thumbnail || '',
-          },
+          roomId: room.roomId,
+          roomName: room.roomName,
+          videoTitle: room.youtube_videos.title,
+          videoThumbnail: room.youtube_videos.thumbnail || '',
           bookmarks: [],
         };
       }
@@ -137,12 +133,10 @@ export const getCollectionDetailById = async (
     {} as Record<
       number,
       {
-        roomData: {
-          roomId: number;
-          roomName: string;
-          videoTitle: string;
-          videoThumbnail: string;
-        };
+        roomId: number;
+        roomName: string;
+        videoTitle: string;
+        videoThumbnail: string;
         bookmarks: {
           bookmarkId: number;
           message: string;
