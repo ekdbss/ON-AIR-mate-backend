@@ -1,6 +1,27 @@
-ON-AIR-mate Backend
-소개
-ON-AIR-mate Backend(node.js) 레포지토리입니다.
+# ON-AIR mate Backend
+
+## 💡 프로젝트 소개
+
+ON-AIR mate는 친구, 팬, 혹은 새로운 사람들과 유튜브 영상을 함께 보며 실시간으로 소통할 수 있는 소셜 비디오 플랫폼입니다.
+영상의 순간을 북마크로 기록하고, 감상 포인트를 모아 나만의 아카이브를 만들며, AI가 대화 내용을 요약해 놓치기 쉬운 순간을 정리해줍니다.
+
+### ✨ 주요 기능
+
+-   **실시간 동영상 시청 + 채팅**: 여러 사람이 동시에 시청하고 대화하며 생생한 반응 공유
+-   **타임라인 북마크 & 아카이브**: 특정 순간을 기록하고 컬렉션으로 정리
+-   **친구 & DM**: 새로운 친구 추천, 1:1 메시지, 컬렉션 공유
+-   **AI 채팅 요약**: 채팅방 종료 시 대화 내용 자동 요약 및 감정 분석
+
+## 🧑‍💻 팀원 소개
+
+| [<img src="https://github.com/ekdbss.png" width="150px"/>](https://github.com/ekdbss) | [<img src="https://github.com/DongilMin.png" width="150px"/>](https://github.com/DongilMin) | [<img src="https://github.com/dltjwls02.png" width="150px"/>](https://github.com/dltjwls02) | [<img src="https://github.com/gaaahee.png" width="150px"/>](https://github.com/gaaahee) |
+| :------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------: |
+|               [김다윤](https://github.com/ekdbss)               |                [민동일](https://github.com/DongilMin)                |                [이서진](https://github.com/dltjwls02)                |                [임가희](https://github.com/gaaahee)                |
+
+## ✨ Server Architecture
+
+![Server Architecture](./assets/ON-AIR-mate-diagram.png)
+
 🚀 배포 정보 (운영 중)
 🌐 프로덕션 서버
 

@@ -11,6 +11,7 @@ export const SOCKET_USER_KEY = (socketId: string) => `socket:${socketId}:userId`
 export const USER_ROOMS_KEY = (userId: number) => `user:${userId}:rooms`;
 
 export const USER_STATUS_KEY = (userId: number) => `user:${userId}:status`;
+export const ONLINE_USERS_KEY = 'users:online';
 
 // 방 영상 상태
 export const ROOM_VIDEO_STATUS_KEY = (roomId: number) => `room:${roomId}:video:status`; // "playing" | "paused"
@@ -25,6 +26,7 @@ export const onlineUser = async (userId: number, socketId: string) => {
   await redis.set(USER_STATUS_KEY(userId), 'online');
   await redis.set(USER_SOCKET_KEY(userId), socketId);
   await redis.set(SOCKET_USER_KEY(socketId), userId.toString());
+  await redis.sadd(ONLINE_USERS_KEY, userId.toString());
 };
 
 export const offlineUser = async (userId: number, socketId: string) => {
@@ -32,6 +34,12 @@ export const offlineUser = async (userId: number, socketId: string) => {
   await redis.set(USER_STATUS_KEY(userId), 'offline');
   await redis.del(USER_SOCKET_KEY(userId));
   await redis.del(SOCKET_USER_KEY(socketId));
+  await redis.srem(ONLINE_USERS_KEY, userId.toString());
+};
+
+export const getOnlineUsers = async (): Promise<number[]> => {
+  const userIds = await redis.smembers(ONLINE_USERS_KEY);
+  return userIds.map(id => parseInt(id, 10));
 };
 
 /**

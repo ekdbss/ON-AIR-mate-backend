@@ -77,7 +77,7 @@ export const leaveRoom = async (req: Request, res: Response, next: NextFunction)
     }
 
     const message = await roomService.removeParticipant(roomId, userId);
-    console.log('응답:', message);
+    //console.log('응답:', message);
 
     sendSuccess(res, message, 201);
   } catch (error) {

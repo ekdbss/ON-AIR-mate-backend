@@ -1,10 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { CollectionVisibility } from '@prisma/client';
-import {
-  CreateCollectionDto,
-  GetCollectionDto,
-  GetCollectionDetailDto,
-} from '../dtos/collectionDto.js';
+import { CreateCollectionDto, GetCollectionDto } from '../dtos/collectionDto.js';
 import AppError from '../middleware/errors/AppError.js';
 
 // 1. 컬랙션 생성
@@ -52,20 +48,20 @@ export const getCollectionsByUserId = async (userId: number): Promise<GetCollect
 };
 
 // 3. 컬랙션 상세 조회
-export const getCollectionDetailById = async (
-  collectionId: number,
-  userId: number,
-): Promise<GetCollectionDetailDto> => {
-  const collection = await prisma.collection.findUnique({
+export const getCollectionDetailById = async (collectionId: number, userId: number) => {
+  let collection = await prisma.collection.findUnique({
     where: { collectionId },
     include: {
       bookmarks: {
         include: {
           room: {
             include: {
-              video: true,
+              youtube_videos: true,
             },
           },
+        },
+        orderBy: {
+          createdAt: 'asc',
         },
       },
     },
@@ -73,6 +69,39 @@ export const getCollectionDetailById = async (
 
   if (!collection) {
     throw new AppError('COLLECTION_001', '컬렉션을 찾을 수 없습니다.');
+  }
+
+  //북마크가 있는데도 커버이미지가 없는 경우 자동 추가
+  if (collection.bookmarkCount > 0 && !collection.coverImage) {
+    // 첫 번째 북마크 찾기 (가장 오래된 북마크 1개만)
+    const firstBookmark = await prisma.bookmark.findFirst({
+      where: { collectionId: collection.collectionId },
+      orderBy: { createdAt: 'asc' },
+      include: {
+        room: {
+          include: {
+            youtube_videos: {
+              select: { thumbnail: true },
+            },
+          },
+        },
+      },
+    });
+
+    const thumbnail = firstBookmark?.room?.youtube_videos?.thumbnail;
+
+    if (thumbnail) {
+      collection = await prisma.collection.update({
+        where: { collectionId: collection.collectionId },
+        data: { coverImage: thumbnail },
+        include: {
+          bookmarks: {
+            include: { room: { include: { youtube_videos: true } } },
+            orderBy: { createdAt: 'asc' },
+          },
+        },
+      });
+    }
   }
 
   // 접근 권한 확인
@@ -97,6 +126,50 @@ export const getCollectionDetailById = async (
     }
   }
 
+  const roomsMap = collection.bookmarks.reduce(
+    (acc, bookmark) => {
+      const { room } = bookmark;
+      if (!acc[room.roomId]) {
+        acc[room.roomId] = {
+          roomData: {
+            roomId: room.roomId,
+            roomName: room.roomName,
+            videoTitle: room.youtube_videos.title,
+            videoThumbnail: room.youtube_videos.thumbnail || '',
+            collectionTitle: collection.title || null,
+          },
+          bookmarks: [],
+        };
+      }
+      acc[room.roomId].bookmarks.push({
+        bookmarkId: bookmark.bookmarkId,
+        message: `${String(Math.floor(bookmark.timeline! / 60)).padStart(
+          2,
+          '0',
+        )}:${String(bookmark.timeline! % 60).padStart(2, '0')} ${bookmark.content}`,
+        timeline: bookmark.timeline!,
+      });
+      return acc;
+    },
+    {} as Record<
+      number,
+      {
+        roomData: {
+          roomId: number;
+          roomName: string;
+          videoTitle: string;
+          videoThumbnail: string;
+          collectionTitle: string | null;
+        };
+        bookmarks: {
+          bookmarkId: number;
+          message: string;
+          timeline: number;
+        }[];
+      }
+    >,
+  );
+
   return {
     collectionId: collection.collectionId,
     title: collection.title,
@@ -106,14 +179,7 @@ export const getCollectionDetailById = async (
     coverImage: collection.coverImage,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
-    bookmarks: collection.bookmarks.map(bookmark => ({
-      bookmarkId: bookmark.bookmarkId,
-      videoTitle: bookmark.room.video.title,
-      videoThumbnail: bookmark.room.video.thumbnail || '',
-      roomTitle: bookmark.room.roomName,
-      message: `${String(Math.floor(bookmark.timeline! / 60)).padStart(2, '0')}:${String(bookmark.timeline! % 60).padStart(2, '0')} ${bookmark.content}`,
-      createdAt: bookmark.createdAt,
-    })),
+    rooms: Object.values(roomsMap),
   };
 };
 

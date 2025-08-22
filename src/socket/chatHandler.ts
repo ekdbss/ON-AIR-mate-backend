@@ -273,26 +273,25 @@ export default function chatHandler(io: Server, socket: Socket) {
     try {
       const parsedRoomId = typeof roomId === 'object' ? roomId.roomId : roomId;
       console.log('[leave Room] 파라미터 확인:', roomId, ', 파싱해서:', parsedRoomId);
-      //퇴장 db 처리
-      //const leaveDB = await removeParticipant(Number(parsedRoomId), userId);
-      //let role = 'participant';
-      const role = await isHost(roomId, userId);
+
+      const role = await isHost(Number(parsedRoomId), userId);
+
       //redis 처리
       const leaveres = await leaveRoom(Number(parsedRoomId), Number(userId));
-      console.log('[Socket] leaveRoom Redis 처리: ', leaveres);
-      socket.leave(roomId.toString());
+      console.log('[leave Room] [Socket] leaveRoom Redis 처리: ', leaveres);
+      socket.leave(parsedRoomId.toString());
 
       //현재 참여자 목록 업데이트
-      const nowParticipants = await getParticipants(roomId);
+      const nowParticipants = await getParticipants(parsedRoomId);
 
       //방 재생 정보 동기화 -멈춤
       if (role === 'host') {
-        io.to(roomId.toString()).emit('video:pause', {
+        io.to(parsedRoomId.toString()).emit('video:pause', {
           type: 'video:pause',
-          data: { roomId, currentTime: 0 },
+          data: { parsedRoomId, currentTime: 0 },
         });
 
-        io.to(roomId.toString()).emit('userLeft', {
+        io.to(parsedRoomId.toString()).emit('userLeft', {
           type: 'userLeft',
           data: {
             leftUser: user.nickname,
@@ -301,18 +300,18 @@ export default function chatHandler(io: Server, socket: Socket) {
           },
         });
         //redis data 정리
-        const leaveres2 = await deleteRoomVideoState(roomId);
-        const delRedis = await removeAllParticipantsFromRoom(roomId);
+        const leaveres2 = await deleteRoomVideoState(Number(parsedRoomId));
+        const delRedis = await removeAllParticipantsFromRoom(Number(parsedRoomId));
         console.log('[Socket] 방장 나감 Redis 처리: ', leaveres2, '소캣 룸 처리:', delRedis);
 
         // 남은 참가자 소켓 연결도 강제 중단
-        const socketsInRoom = await io.in(roomId.toString()).fetchSockets();
+        const socketsInRoom = await io.in(parsedRoomId.toString()).fetchSockets();
         for (const socket of socketsInRoom) {
-          socket.leave(roomId.toString());
+          socket.leave(parsedRoomId.toString());
           console.log('[Socket] 참가자 강퇴:', socket.data);
         }
       } else {
-        io.to(roomId.toString()).emit('userLeft', {
+        io.to(parsedRoomId.toString()).emit('userLeft', {
           type: 'userLeft',
           data: {
             leftUser: user.nickname,

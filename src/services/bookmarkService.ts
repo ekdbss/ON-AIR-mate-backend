@@ -43,7 +43,7 @@ type BookmarkWithRelations = Prisma.BookmarkGetPayload<{
   include: {
     room: {
       include: {
-        video: true; // Room.video (YoutubeVideo)
+        youtube_videos: true; // Room.video (YoutubeVideo)
       };
     };
     collection: {
@@ -55,31 +55,37 @@ type BookmarkWithRelations = Prisma.BookmarkGetPayload<{
 export const getBookmarks = async (userId: number, options: GetBookmarksOptions) => {
   const { collectionId, uncategorized } = options || {};
 
-  // 동적 where 구성
-  const where: Prisma.BookmarkWhereInput = { userId };
+  // 공통 where
+  const baseWhere: Prisma.BookmarkWhereInput = { userId };
+
+  // collectionId 지정된 경우 → 해당 컬렉션 북마크만
   if (typeof collectionId === 'number') {
-    where.collectionId = collectionId;
-  } else if (uncategorized === true) {
-    where.collectionId = null;
+    baseWhere.collectionId = collectionId;
+  }
+  // uncategorized 플래그 켜진 경우 → 컬렉션 없는 북마크만
+  else if (uncategorized === true) {
+    baseWhere.collectionId = null;
   }
 
-  // 필요한 관계 포함해서 조회 (room.video, bookmark.collection)
+  // 필요한 관계 포함해서 조회
   const rows: BookmarkWithRelations[] = await prisma.bookmark.findMany({
-    where,
+    where: baseWhere,
     include: {
-      room: {
-        include: {
-          video: true, // YoutubeVideo
-        },
-      },
-      collection: {
-        select: { title: true },
-      },
+      room: { include: { youtube_videos: true } },
+      collection: { select: { title: true } },
     },
     orderBy: { createdAt: 'desc' },
   });
 
-  // room 단위 그룹화 유틸
+  // HH:MM:SS 변환 유틸
+  const formatTimeline = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
+  };
+
+  // room 단위 그룹화
   const groupByRoom = (list: BookmarkWithRelations[], includeCreatedAt: boolean) => {
     const grouped: Array<{
       roomData: {
@@ -102,8 +108,8 @@ export const getBookmarks = async (userId: number, options: GetBookmarksOptions)
     for (const b of list) {
       const roomId = b.roomId;
       const roomName = b.room?.roomName ?? null;
-      const videoTitle = b.room?.video?.title ?? null;
-      const videoThumbnail = b.room?.video?.thumbnail ?? null;
+      const videoTitle = b.room?.youtube_videos?.title ?? null;
+      const videoThumbnail = b.room?.youtube_videos?.thumbnail ?? null;
       const bookmarkCollectionTitle = b.collection?.title ?? null;
 
       let idx = map.get(roomId);
@@ -133,7 +139,7 @@ export const getBookmarks = async (userId: number, options: GetBookmarksOptions)
         createdAt?: Date;
       } = {
         bookmarkId: b.bookmarkId,
-        message: b.content ?? '',
+        message: `${formatTimeline(b.timeline ?? 0)} ${b.content ?? ''}`,
         timeline: b.timeline ?? 0,
       };
 
@@ -147,6 +153,7 @@ export const getBookmarks = async (userId: number, options: GetBookmarksOptions)
     return grouped;
   };
 
+  // collectionId 지정 시
   if (typeof collectionId === 'number') {
     return {
       uncategorized: [],
@@ -154,6 +161,7 @@ export const getBookmarks = async (userId: number, options: GetBookmarksOptions)
     };
   }
 
+  // uncategorized 지정 시
   if (uncategorized === true) {
     return {
       uncategorized: groupByRoom(rows, false),
@@ -161,10 +169,13 @@ export const getBookmarks = async (userId: number, options: GetBookmarksOptions)
     };
   }
 
+  // 기본: uncategorized = collectionId == null, all = collectionId != null
   const uncategorizedList = rows.filter(b => b.collectionId == null);
+  const categorizedList = rows.filter(b => b.collectionId != null);
+
   return {
     uncategorized: groupByRoom(uncategorizedList, false),
-    all: groupByRoom(rows, true),
+    all: groupByRoom(categorizedList, true),
   };
 };
 
@@ -195,9 +206,38 @@ export const moveBookmarkToCollection = async (
     throw new Error('권한이 없습니다.');
   }
 
-  return await prisma.bookmark.update({
+  const res1 = await prisma.bookmark.update({
     where: { bookmarkId },
     data: { collectionId },
+  });
+
+  // 1. 해당 Room 조회 (YoutubeVideo 포함)
+  const room = await prisma.room.findUnique({
+    where: { roomId: res1.roomId },
+    include: {
+      youtube_videos: {
+        select: { thumbnail: true },
+      },
+    },
+  });
+
+  // 2. 현재 Collection 조회
+  const collection = await prisma.collection.findUnique({
+    where: { collectionId },
+    select: { bookmarkCount: true, coverImage: true },
+  });
+
+  // 3. coverImage 업데이트 여부 결정
+  const shouldUpdateCover =
+    collection?.bookmarkCount === 0 && !collection.coverImage && room?.youtube_videos?.thumbnail;
+
+  // 4. Collection 업데이트- bookmarkCount가 0에서 1로 되는 순간에만 썸네일 지정
+  await prisma.collection.update({
+    where: { collectionId },
+    data: {
+      bookmarkCount: { increment: 1 },
+      ...(shouldUpdateCover ? { coverImage: room.youtube_videos.thumbnail } : {}),
+    },
   });
 };
 
@@ -224,7 +264,7 @@ export const createRoomFromBookmark = async (
     include: {
       room: {
         include: {
-          video: true,
+          youtube_videos: true,
         },
       },
     },
@@ -234,7 +274,7 @@ export const createRoomFromBookmark = async (
     throw new Error('해당 북마크에 대한 권한이 없습니다.');
   }
 
-  const videoThumbnail = bookmark.room?.video?.thumbnail ?? '';
+  const videoThumbnail = bookmark.room?.youtube_videos?.thumbnail ?? '';
   const startTime = startFrom === 'BOOKMARK' ? (bookmark?.timeline ?? 0) : 0;
 
   if (!bookmark.room?.videoId) {
@@ -250,6 +290,15 @@ export const createRoomFromBookmark = async (
       hostId: userId,
       startType: startFrom,
       startTime: startTime,
+    },
+  });
+
+  //참가자 목록 추가
+  await prisma.roomParticipant.create({
+    data: {
+      roomId: newRoom.roomId,
+      userId: userId,
+      role: 'host',
     },
   });
 

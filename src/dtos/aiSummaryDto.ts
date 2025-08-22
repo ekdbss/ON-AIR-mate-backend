@@ -6,6 +6,24 @@ export interface GenerateSummaryRequestDto {
 }
 
 /**
+ * 감정 분석 항목
+ */
+export interface EmotionItem {
+  emotion: string; // 감정 이름 (기쁨, 슬픔, 분노 등)
+  percentage: number; // 퍼센트 값 (0-100)
+}
+
+/**
+ * 하이라이트(북마크) 항목
+ */
+export interface HighlightItem {
+  timeline: string; // "13:28" 형식
+  content: string; // 북마크 메시지
+  userId: number;
+  nickname: string;
+}
+
+/**
  * AI 채팅 요약 응답 DTO
  */
 export interface GenerateSummaryResponseDto {
@@ -13,7 +31,8 @@ export interface GenerateSummaryResponseDto {
   roomTitle: string;
   videoTitle: string;
   topicSummary: string;
-  emotionAnalysis: string; // "기쁨", "슬픔", "분노", "혐오", "공포", "놀람" 중 하나
+  emotionAnalysis: EmotionItem[];
+  highlights: HighlightItem[];
   timestamp: string;
 }
 
@@ -46,7 +65,7 @@ export interface ChatMessageFormatDto {
  */
 export interface ClaudeResponseDto {
   topicSummary: string;
-  emotionAnalysis: string; // EmotionType + 설명
+  emotionAnalysis: EmotionItem[]; // string에서 배열로 변경
 }
 
 /**

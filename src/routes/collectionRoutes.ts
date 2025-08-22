@@ -96,13 +96,92 @@ router.get('/', requireAuth, collectionController.getCollections);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/GetCollectionDetailDto'
+ *                 type: object
+ *                 properties:
+ *                   roomData:
+ *                     type: object
+ *                     properties:
+ *                       roomId:
+ *                         type: integer
+ *                         example: 333
+ *                       roomName:
+ *                         type: string
+ *                         example: 방이름1
+ *                       videoTitle:
+ *                         type: string
+ *                         example: 영상제목
+ *                       videoThumbnail:
+ *                         type: string
+ *                         example: 썸네일URL
+ *                       collectionTitle:
+ *                         type: string
+ *                         nullable: true
+ *                         example: null
+ *                   bookmarks:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         bookmarkId:
+ *                           type: integer
+ *                           example: 456
+ *                         message:
+ *                           type: string
+ *                           example: 00:15:30 재밌는 장면
+ *                         timeline:
+ *                           type: integer
+ *                           example: 930
  *       401:
  *         description: 인증되지 않은 사용자 또는 권한 없음
  *       404:
  *         description: 컬렉션을 찾을 수 없음
  */
 router.get('/:collectionId', requireAuth, collectionController.getCollectionDetail);
+
+/**
+ * @swagger
+ * /api/collections/order:
+ *   put:
+ *     summary: 컬렉션 순서 변경
+ *     tags: [Collections]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ReorderCollectionsDto'
+ *           example:
+ *             collectionOrders:
+ *               - collectionId: 123
+ *                 order: 1
+ *               - collectionId: 124
+ *                 order: 2
+ *     responses:
+ *       200:
+ *         description: 컬렉션 순서 변경 성공
+ *
+ * components:
+ *   schemas:
+ *     ReorderCollectionsDto:
+ *       type: object
+ *       properties:
+ *         collectionOrders:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               collectionId:
+ *                 type: integer
+ *                 example: 123
+ *               order:
+ *                 type: integer
+ *                 example: 1
+ *       required:
+ *         - collectionOrders
+ */
+router.put('/order', requireAuth, collectionController.updateCollectionOrder);
 
 /**
  * @swagger
@@ -153,32 +232,6 @@ router.put('/:collectionId', requireAuth, collectionController.updateCollection)
  *         description: 컬렉션 삭제 성공
  */
 router.delete('/:collectionId', requireAuth, collectionController.deleteCollection);
-
-/**
- * @swagger
- * /api/collections/order:
- *   put:
- *     summary: 컬렉션 순서 변경
- *     tags: [Collections]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ReorderCollectionsDto'
- *           example:
- *             collectionOrders:
- *               - collectionId: 123
- *                 order: 1
- *               - collectionId: 124
- *                 order: 2
- *     responses:
- *       200:
- *         description: 컬렉션 순서 변경 성공
- */
-router.put('/order', requireAuth, collectionController.updateCollectionOrder);
 
 /**
  * 컬렉션 공유하기
